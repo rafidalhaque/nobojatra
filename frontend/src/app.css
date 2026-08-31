@@ -169,11 +169,16 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 .field { display: grid; gap: 0.35em; margin-bottom: 1rem; }
 .field input, .field textarea, .field select {
+  width: 100%;
+  min-height: 2.6rem;
   padding: 0.6em 0.75em;
   background: var(--paper);
+  color: var(--ink);
   border: 1px solid var(--rule);
   border-radius: var(--radius);
 }
+.field textarea { min-height: unset; }
+.field input[type='file'] { min-height: unset; padding: 0.4em 0; border: 0; background: none; }
 .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--thread); }
 
 .prose { max-width: var(--measure); }

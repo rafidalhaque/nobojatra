@@ -2,7 +2,6 @@
   import { onMount } from 'svelte';
   import { api } from '$lib/api.js';
   import { t } from '$lib/i18n';
-  import { session } from '$lib/stores.js';
   import Spinner from '$lib/components/Spinner.svelte';
 
   let loading = $state(true);
@@ -18,11 +17,6 @@
   ];
 
   onMount(async () => {
-    if (!$session?.is_super_admin) {
-      error = 'forbidden';
-      loading = false;
-      return;
-    }
     try {
       const [perms, dept, branch] = await Promise.all([
         api('/permissions'),
@@ -57,14 +51,10 @@
   }
 </script>
 
-<svelte:head><title>{$t('admin.heading')} · Nobojatra</title></svelte:head>
-
-<h1>{$t('admin.heading')}</h1>
+<svelte:head><title>{$t('admin.permissions')} · Nobojatra</title></svelte:head>
 
 {#if loading}
   <Spinner block />
-{:else if error === 'forbidden'}
-  <p class="err">403</p>
 {:else if error}
   <p class="err" role="alert">{$t('common.error', { detail: error })}</p>
 {:else}
@@ -100,11 +90,6 @@
         {/each}
       </tbody>
     </table>
-  </section>
-
-  <section class="soon">
-    <h2 class="label">{$t('admin.categories')} · {$t('admin.areas')}</h2>
-    <p class="hint">Managed through the API today; a panel here is the next slice.</p>
   </section>
 {/if}
 
@@ -155,9 +140,6 @@
     width: 1.15rem;
     height: 1.15rem;
     accent-color: var(--thread);
-  }
-  .soon {
-    opacity: 0.75;
   }
   .err {
     color: var(--danger);

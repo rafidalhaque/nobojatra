@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { api } from '$lib/api.js';
   import { t } from '$lib/i18n';
+  import { session } from '$lib/stores.js';
   import { unitLabel } from '$lib/format.js';
   import Spinner from '$lib/components/Spinner.svelte';
 
@@ -28,7 +29,12 @@
 
 <svelte:head><title>{$t('directory.heading')} · Nobojatra</title></svelte:head>
 
-<h1>{$t('directory.heading')}</h1>
+<div class="head">
+  <h1>{$t('directory.heading')}</h1>
+  {#if $session?.is_super_admin}
+    <a class="btn btn--ghost" href="/admin/org-units">{$t('admin.nav.orgUnits')}</a>
+  {/if}
+</div>
 
 {#if loading}
   <Spinner block />
@@ -59,6 +65,16 @@
 {/if}
 
 <style>
+  .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .head h1 {
+    margin: 0;
+  }
   section {
     margin-bottom: 2.5rem;
   }
