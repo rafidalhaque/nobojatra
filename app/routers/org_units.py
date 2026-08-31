@@ -73,6 +73,7 @@ async def update_unit(unit_id: str, body: OrgUnitPatch, _: SuperAdminDep, db: Db
         await db.flush()
     except IntegrityError:
         raise HTTPException(status.HTTP_409_CONFLICT, "Duplicate code")
+    await db.refresh(unit)  # repopulate server-side updated_at before serialize
     return unit
 
 
