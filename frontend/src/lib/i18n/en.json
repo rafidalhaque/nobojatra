@@ -59,6 +59,7 @@
   "editor.published": "Published",
   "editor.media": "Attachments",
   "editor.addMedia": "Add files",
+  "editor.filesSelected": "{n} file(s) selected",
 
   "messages.heading": "Messages",
   "messages.empty": "No conversations yet.",

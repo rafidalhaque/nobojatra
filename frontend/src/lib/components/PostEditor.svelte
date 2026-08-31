@@ -86,62 +86,86 @@
   <Spinner block />
 {:else}
   <form onsubmit={(e) => e.preventDefault()} class="editor">
-    <div class="field">
-      <label for="t">{$t('editor.title')}</label>
-      <input id="t" bind:value={title} required lang={$lang} />
+    <div class="main">
+      <div class="field">
+        <label for="t">{$t('editor.title')}</label>
+        <input id="t" bind:value={title} required lang={$lang} />
+      </div>
+
+      <div class="field grow">
+        <label for="b">{$t('editor.body')}</label>
+        <textarea id="b" bind:value={body} lang={$lang}></textarea>
+      </div>
     </div>
 
-    <div class="row">
+    <aside class="side">
       <div class="field">
         <label for="c">{$t('editor.category')}</label>
         <select id="c" bind:value={categoryId} required>
           {#each categories as c (c.id)}<option value={c.id}>{c.name}</option>{/each}
         </select>
       </div>
+
       <div class="field">
         <label for="d">{$t('editor.date')}</label>
         <input id="d" type="datetime-local" bind:value={noticeDate} />
         <small>{$t('editor.dateHint')}</small>
       </div>
-    </div>
 
-    <div class="field">
-      <label for="b">{$t('editor.body')}</label>
-      <textarea id="b" rows="14" bind:value={body} lang={$lang}></textarea>
-    </div>
+      <div class="field">
+        <label for="m">{$t('editor.media')}</label>
+        <input id="m" type="file" multiple onchange={(e) => (files = [...e.currentTarget.files])} />
+        {#if files.length}<small>{$t('editor.filesSelected', { n: files.length })}</small>{/if}
+      </div>
 
-    <div class="field">
-      <label for="m">{$t('editor.media')}</label>
-      <input id="m" type="file" multiple onchange={(e) => (files = [...e.currentTarget.files])} />
-    </div>
+      {#if error}<p class="err" role="alert">{$t('common.error', { detail: error })}</p>{/if}
 
-    {#if error}<p class="err" role="alert">{$t('common.error', { detail: error })}</p>{/if}
-
-    <div class="actions">
-      <button class="btn btn--ghost" onclick={() => save(false)} disabled={!!saving}>
-        {saving === 'draft' ? $t('common.saving') : $t('editor.saveDraft')}
-      </button>
-      <button class="btn" onclick={() => save(true)} disabled={!!saving}>
-        {saving === 'publish' ? $t('common.saving') : $t('editor.publish')}
-      </button>
-    </div>
+      <div class="actions">
+        <button class="btn btn--ghost" onclick={() => save(false)} disabled={!!saving}>
+          {saving === 'draft' ? $t('common.saving') : $t('editor.saveDraft')}
+        </button>
+        <button class="btn" onclick={() => save(true)} disabled={!!saving}>
+          {saving === 'publish' ? $t('common.saving') : $t('editor.publish')}
+        </button>
+      </div>
+    </aside>
   </form>
 {/if}
 
 <style>
   .editor {
-    max-width: 44rem;
-  }
-  .row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) 19rem;
+    gap: 2.5rem;
+    align-items: start;
+  }
+  .main {
+    display: flex;
+    flex-direction: column;
     gap: 1rem;
+    min-height: 70vh;
+  }
+  .main .grow {
+    flex: 1;
   }
   textarea {
-    width: 100%;
+    flex: 1;
+    min-height: 60vh;
     resize: vertical;
     font-family: var(--font-latin);
     line-height: 1.6;
+  }
+  .side {
+    position: sticky;
+    top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    border-left: 1px solid var(--rule);
+    padding-left: 1.75rem;
+  }
+  .side .field {
+    margin-bottom: 0;
   }
   small {
     color: var(--ink-muted);
@@ -149,15 +173,32 @@
   }
   .actions {
     display: flex;
-    gap: 0.75rem;
-    margin-top: 1rem;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: 0.5rem;
+  }
+  .actions .btn {
+    width: 100%;
   }
   .err {
     color: var(--danger);
+    font-size: var(--step--1);
   }
-  @media (max-width: 560px) {
-    .row {
+
+  @media (max-width: 820px) {
+    .editor {
       grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    .side {
+      position: static;
+      border-left: 0;
+      padding-left: 0;
+      border-top: 1px solid var(--rule);
+      padding-top: 1.25rem;
+    }
+    textarea {
+      min-height: 40vh;
     }
   }
 </style>

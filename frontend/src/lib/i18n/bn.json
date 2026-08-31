@@ -59,6 +59,7 @@
   "editor.published": "প্রকাশিত",
   "editor.media": "সংযুক্তি",
   "editor.addMedia": "ফাইল যোগ করুন",
+  "editor.filesSelected": "{n}টি ফাইল নির্বাচিত",
 
   "messages.heading": "মেসেজ",
   "messages.empty": "এখনো কোনো মেসেজ নেই।",
