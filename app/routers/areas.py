@@ -31,7 +31,10 @@ async def rename_area(area_id: str, body: AreaIn, _: SuperAdminDep, db: DbDep):
     if area is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
     area.name = body.name
-    await db.flush()
+    try:
+        await db.flush()
+    except IntegrityError:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Area name already exists")
     return area
 
 

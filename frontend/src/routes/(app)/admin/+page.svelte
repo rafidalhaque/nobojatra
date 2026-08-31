@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { api } from '$lib/api.js';
   import { t } from '$lib/i18n';
+  import { unitLabel } from '$lib/format.js';
   import Spinner from '$lib/components/Spinner.svelte';
 
   let loading = $state(true);
@@ -11,6 +12,13 @@
   /** @type {Record<string, Record<string, boolean>>} */
   let matrix = $state({ dept_default: {}, branch_default: {} });
 
+  // per-unit overrides
+  let units = $state([]);
+  let ovUnit = $state('');
+  let ovMatrix = $state(null); // { unit_type, effective, overrides }
+  let ovLoading = $state(false);
+  let ovSaving = $state('');
+
   const PROFILES = [
     { name: 'dept_default', key: 'admin.deptDefault' },
     { name: 'branch_default', key: 'admin.branchDefault' }
@@ -18,19 +26,55 @@
 
   onMount(async () => {
     try {
-      const [perms, dept, branch] = await Promise.all([
+      const [perms, dept, branch, us] = await Promise.all([
         api('/permissions'),
         api('/permission-profiles/dept_default'),
-        api('/permission-profiles/branch_default')
+        api('/permission-profiles/branch_default'),
+        api('/org-units')
       ]);
       permissions = perms;
       matrix = { dept_default: dept, branch_default: branch };
+      units = us;
     } catch (e) {
       error = e.detail ?? 'error';
     } finally {
       loading = false;
     }
   });
+
+  async function loadOverrides() {
+    ovMatrix = null;
+    if (!ovUnit) return;
+    ovLoading = true;
+    try {
+      ovMatrix = await api(`/org-units/${ovUnit}/permissions`);
+      error = '';
+    } catch (e) {
+      error = e.detail ?? 'error';
+    } finally {
+      ovLoading = false;
+    }
+  }
+
+  function ovState(key) {
+    const o = ovMatrix?.overrides ?? {};
+    return key in o ? (o[key] ? 'allow' : 'deny') : 'inherit';
+  }
+
+  async function setOverride(key, choice) {
+    ovSaving = key;
+    try {
+      ovMatrix = await api(`/org-units/${ovUnit}/permissions`, {
+        method: 'PUT',
+        body: { permissions: { [key]: choice === 'inherit' ? null : choice === 'allow' } }
+      });
+      error = '';
+    } catch (e) {
+      error = e.detail ?? 'error';
+    } finally {
+      ovSaving = '';
+    }
+  }
 
   async function toggle(profile, key) {
     const next = { ...matrix[profile], [key]: !matrix[profile][key] };
@@ -55,9 +99,11 @@
 
 {#if loading}
   <Spinner block />
-{:else if error}
-  <p class="err" role="alert">{$t('common.error', { detail: error })}</p>
 {:else}
+  {#if error}
+    <p class="err" role="alert">{$t('common.error', { detail: error })}</p>
+  {/if}
+
   <section>
     <h2 class="label">{$t('admin.permissions')}</h2>
     <p class="hint">{$t('admin.permHint')}</p>
@@ -91,6 +137,45 @@
       </tbody>
     </table>
   </section>
+
+  <section>
+    <h2 class="label">{$t('admin.unitOverrides')}</h2>
+    <p class="hint">{$t('admin.unitOverridesHint')}</p>
+
+    <select class="unitsel" bind:value={ovUnit} onchange={loadOverrides}>
+      <option value="">{$t('admin.pickUnit')}</option>
+      {#each units as u (u.id)}<option value={u.id}>{unitLabel(u)}</option>{/each}
+    </select>
+
+    {#if ovLoading}
+      <Spinner block />
+    {:else if ovMatrix}
+      <table>
+        <thead>
+          <tr><th>Action</th><th class="ct">Override</th><th class="ct">{$t('admin.effective')}</th></tr>
+        </thead>
+        <tbody>
+          {#each permissions as perm (perm.key)}
+            <tr>
+              <td><code>{perm.key}</code><small>{perm.description}</small></td>
+              <td class="ct">
+                <select
+                  value={ovState(perm.key)}
+                  disabled={ovSaving === perm.key}
+                  onchange={(e) => setOverride(perm.key, e.currentTarget.value)}
+                >
+                  <option value="inherit">{$t('admin.inherit')}</option>
+                  <option value="allow">{$t('admin.allow')}</option>
+                  <option value="deny">{$t('admin.deny')}</option>
+                </select>
+              </td>
+              <td class="ct">{ovMatrix.effective[perm.key] ? '✓' : '—'}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    {/if}
+  </section>
 {/if}
 
 <style>
@@ -119,6 +204,22 @@
   .ct {
     text-align: center;
     width: 9rem;
+  }
+  .unitsel {
+    margin-top: 1rem;
+    padding: 0.45em 0.6em;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    color: var(--ink);
+    min-width: 16rem;
+  }
+  .ct select {
+    padding: 0.3em 0.4em;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    color: var(--ink);
   }
   td {
     padding: 0.6rem;

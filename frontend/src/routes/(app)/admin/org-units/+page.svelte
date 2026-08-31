@@ -64,6 +64,17 @@
     editErr = '';
   }
 
+  async function removeUnit(u) {
+    if (!confirm($t('admin.units.deleteConfirm', { name: u.name }))) return;
+    error = '';
+    try {
+      await api(`/org-units/${u.id}`, { method: 'DELETE' });
+      units = units.filter((x) => x.id !== u.id);
+    } catch (e) {
+      error = e.detail ?? 'error';
+    }
+  }
+
   async function saveEdit() {
     if (savingEdit) return;
     const cur = units.find((x) => x.id === editId);
@@ -240,7 +251,10 @@
                 <td class="code">{u.code}</td>
                 <td>{u.name}</td>
                 <td>{areaName(u.area_id)}</td>
-                <td class="acts"><button class="lnk" onclick={() => startEdit(u)}>{$t('common.edit')}</button></td>
+                <td class="acts">
+                  <button class="lnk" onclick={() => startEdit(u)}>{$t('common.edit')}</button>
+                  <button class="lnk danger" onclick={() => removeUnit(u)}>{$t('common.delete')}</button>
+                </td>
               </tr>
             {/if}
           {/each}
@@ -357,6 +371,9 @@
   }
   .lnk:hover {
     color: var(--thread-strong);
+  }
+  .lnk.danger {
+    color: var(--seal);
   }
   .lnk[disabled] {
     opacity: 0.5;

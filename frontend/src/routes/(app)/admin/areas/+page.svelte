@@ -12,6 +12,8 @@
   let bulkText = $state('');
   let bulking = $state(false);
   let bulkMsg = $state('');
+  let editingId = $state('');
+  let editName = $state('');
 
   onMount(load);
 
@@ -74,6 +76,23 @@
     bulking = false;
   }
 
+  function startEdit(a) {
+    editingId = a.id;
+    editName = a.name;
+    error = '';
+  }
+
+  async function saveEdit() {
+    if (!editName.trim()) return;
+    try {
+      const a = await api(`/areas/${editingId}`, { method: 'PATCH', body: { name: editName.trim() } });
+      areas = areas.map((x) => (x.id === a.id ? a : x)).sort((x, y) => x.name.localeCompare(y.name));
+      editingId = '';
+    } catch (e) {
+      error = e.detail ?? 'error';
+    }
+  }
+
   async function remove(a) {
     if (!confirm($t('admin.areas.deleteConfirm', { name: a.name }))) return;
     error = '';
@@ -116,8 +135,15 @@
   <ul class="list">
     {#each areas as a (a.id)}
       <li>
-        <span>{a.name}</span>
-        <button class="del" onclick={() => remove(a)}>{$t('common.delete')}</button>
+        {#if editingId === a.id}
+          <input bind:value={editName} onkeydown={(e) => e.key === 'Enter' && saveEdit()} aria-label={$t('admin.areas.name')} />
+          <button class="del" onclick={saveEdit}>{$t('common.save')}</button>
+          <button class="del" onclick={() => (editingId = '')}>{$t('common.cancel')}</button>
+        {:else}
+          <span>{a.name}</span>
+          <button class="del" onclick={() => startEdit(a)}>{$t('common.edit')}</button>
+          <button class="del" onclick={() => remove(a)}>{$t('common.delete')}</button>
+        {/if}
       </li>
     {/each}
   </ul>
@@ -150,10 +176,23 @@
   }
   .list li {
     display: flex;
+    gap: 0.75rem;
     justify-content: space-between;
     align-items: center;
     padding: 0.7rem 0.4rem;
     border-bottom: 1px solid var(--rule);
+  }
+  .list li span {
+    margin-right: auto;
+  }
+  .list li input {
+    flex: 1;
+    margin-right: auto;
+    padding: 0.4em 0.6em;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    color: var(--ink);
   }
   .del {
     background: none;

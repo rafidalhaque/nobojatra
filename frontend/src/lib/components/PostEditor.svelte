@@ -25,6 +25,7 @@
   let orgUnitId = $state('');
   let noticeDate = $state(''); // datetime-local; blank -> backend uses now()
   let files = $state([]);
+  let existingMedia = $state([]); // already-uploaded attachments (edit mode)
   let dragOver = $state(false);
   let status = $state('draft');
 
@@ -37,6 +38,15 @@
   }
   function removeFile(i) {
     files = files.filter((_, n) => n !== i);
+  }
+  async function removeExisting(m) {
+    if (!confirm($t('editor.removeConfirm', { name: m.original_filename }))) return;
+    try {
+      await api(`/posts/${postId}/media/${m.id}`, { method: 'DELETE' });
+      existingMedia = existingMedia.filter((x) => x.id !== m.id);
+    } catch (e) {
+      error = e.detail ?? 'error';
+    }
   }
 
   onMount(async () => {
@@ -53,6 +63,7 @@
         categoryId = p.category_id;
         status = p.status;
         noticeDate = toLocalInput(p.created_at);
+        existingMedia = p.media ?? [];
       } else if (categories.length) {
         categoryId = categories[0].id;
       }
@@ -151,6 +162,16 @@
 
       <div class="field">
         <span class="lbl">{$t('editor.media')}</span>
+        {#if existingMedia.length}
+          <ul class="files">
+            {#each existingMedia as m (m.id)}
+              <li>
+                <span class="fn">{m.original_filename}</span>
+                <button type="button" class="rm" onclick={() => removeExisting(m)} aria-label={$t('editor.remove')}>×</button>
+              </li>
+            {/each}
+          </ul>
+        {/if}
         <label
           class="drop"
           class:over={dragOver}
