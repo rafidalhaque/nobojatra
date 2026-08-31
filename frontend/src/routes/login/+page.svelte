@@ -54,7 +54,6 @@
   <div class="sheet paper-card">
     <p class="kicker label">গোপনীয় · Confidential</p>
     <h1>{$t('login.heading')}</h1>
-    <p class="tagline">{$t('login.tagline')}</p>
 
     {#if checking}
       <p class="tagline">{$t('common.loading')}</p>
@@ -77,8 +76,6 @@
       </form>
     {/if}
   </div>
-
-  <p class="foot" lang={$lang}>{$t('login.footer')}</p>
 </main>
 
 <style>
@@ -131,13 +128,6 @@
     color: var(--danger);
     font-size: var(--step--1);
     margin: 0 0 0.75rem;
-  }
-  .foot {
-    max-width: 27rem;
-    text-align: center;
-    color: var(--ink-muted);
-    font-size: var(--step--1);
-    margin: 0;
   }
   /* subtle field entrance — one gesture, respects reduced-motion via app.css */
   .field {

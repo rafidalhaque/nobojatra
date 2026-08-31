@@ -20,8 +20,6 @@
   "login.password": "Password",
   "login.submit": "Sign in",
   "login.submitting": "Signing in…",
-  "login.tagline": "Notices and messages for your branch or department.",
-  "login.footer": "Internal use only. No public access, no sign-up.",
   "login.failed": "Wrong username or password.",
 
   "nav.feed": "Notices",
