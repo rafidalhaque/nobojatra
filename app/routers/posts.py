@@ -160,6 +160,7 @@ async def edit_post(
     if body.created_at is not None:
         post.created_at = body.created_at
     await db.flush()
+    await db.refresh(post)  # repopulate server-side updated_at / search_tsv before serialize
     return post
 
 
@@ -188,6 +189,7 @@ async def publish_post(
     if post.published_at is None:
         post.published_at = dt.datetime.now(dt.UTC)
     await db.flush()
+    await db.refresh(post)  # repopulate server-side updated_at / search_tsv before serialize
     if was_draft:
         bg.add_task(_fan_out_notifications, str(post.id), post.org_unit_id, post.title)
     return post
