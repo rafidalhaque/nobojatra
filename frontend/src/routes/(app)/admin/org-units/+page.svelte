@@ -152,8 +152,8 @@
 {:else if areas.length === 0}
   <p class="muted">{$t('admin.units.needArea')} <a href="/admin/areas">{$t('admin.nav.areas')}</a></p>
 {:else}
-  <section>
-    <h2 class="label">{$t('admin.units.createOne')}</h2>
+  <details class="disc">
+    <summary class="label">{$t('admin.units.createOne')}</summary>
     <form class="grid" onsubmit={(e) => (e.preventDefault(), createOne())}>
       <label>{$t('admin.units.type')}
         <select bind:value={cType}>
@@ -177,10 +177,10 @@
       </div>
     </form>
     <p class="hint">{$t('admin.units.codeHint')}</p>
-  </section>
+  </details>
 
-  <section>
-    <h2 class="label">{$t('admin.units.importCsv')}</h2>
+  <details class="disc">
+    <summary class="label">{$t('admin.units.importCsv')}</summary>
     <form class="grid" onsubmit={(e) => (e.preventDefault(), runImport())}>
       <label>{$t('admin.units.type')}
         <select bind:value={iType}>
@@ -216,7 +216,7 @@
         </ul>
       </div>
     {/if}
-  </section>
+  </details>
 
   <section>
     <h2 class="label">{$t('admin.units.existing')}</h2>
@@ -267,6 +267,30 @@
 <style>
   section {
     margin-bottom: 2.5rem;
+  }
+  .disc {
+    margin-bottom: 1rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--paper-raised);
+  }
+  .disc summary {
+    cursor: pointer;
+    padding: 0.8rem 1rem;
+    user-select: none;
+  }
+  .disc[open] summary {
+    border-bottom: 1px solid var(--rule);
+  }
+  .disc > :not(summary) {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+  .disc > :first-of-type {
+    margin-top: 1rem;
+  }
+  .disc > :last-child {
+    margin-bottom: 1rem;
   }
   .grid {
     display: grid;
