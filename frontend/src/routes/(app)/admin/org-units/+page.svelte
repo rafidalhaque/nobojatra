@@ -28,6 +28,14 @@
   let rowErrors = $state([]);
   let importErr = $state('');
 
+  // inline profile edit (Super Admin only page)
+  let editId = $state(null);
+  let eName = $state('');
+  let eCode = $state('');
+  let eArea = $state('');
+  let savingEdit = $state(false);
+  let editErr = $state('');
+
   onMount(load);
 
   async function load() {
@@ -46,6 +54,38 @@
 
   function sortUnits(list) {
     return [...list].sort((a, b) => a.unit_type.localeCompare(b.unit_type) || a.name.localeCompare(b.name));
+  }
+
+  function startEdit(u) {
+    editId = u.id;
+    eName = u.name;
+    eCode = u.code;
+    eArea = u.area_id;
+    editErr = '';
+  }
+
+  async function saveEdit() {
+    if (savingEdit) return;
+    const cur = units.find((x) => x.id === editId);
+    const patch = {};
+    if (eName.trim() !== cur.name) patch.name = eName.trim();
+    if (eCode.trim() !== cur.code) patch.code = eCode.trim();
+    if (eArea !== cur.area_id) patch.area_id = eArea;
+    if (!Object.keys(patch).length) {
+      editId = null;
+      return;
+    }
+    savingEdit = true;
+    editErr = '';
+    try {
+      const updated = await api(`/org-units/${editId}`, { method: 'PATCH', body: patch });
+      units = sortUnits(units.map((x) => (x.id === updated.id ? updated : x)));
+      editId = null;
+    } catch (e) {
+      editErr = e.detail ?? 'error';
+    } finally {
+      savingEdit = false;
+    }
   }
 
   async function createOne() {
@@ -173,15 +213,36 @@
       <p class="muted">{$t('common.none')}</p>
     {:else}
       <table>
-        <thead><tr><th>{$t('admin.units.type')}</th><th>{$t('admin.units.code')}</th><th>{$t('admin.units.name')}</th><th>{$t('admin.units.area')}</th></tr></thead>
+        <thead><tr><th>{$t('admin.units.type')}</th><th>{$t('admin.units.code')}</th><th>{$t('admin.units.name')}</th><th>{$t('admin.units.area')}</th><th>{$t('admin.units.actions')}</th></tr></thead>
         <tbody>
           {#each units as u (u.id)}
-            <tr>
-              <td>{u.unit_type === 'dept' ? $t('admin.units.dept') : $t('admin.units.branch')}</td>
-              <td class="code">{u.code}</td>
-              <td>{u.name}</td>
-              <td>{areaName(u.area_id)}</td>
-            </tr>
+            {#if editId === u.id}
+              <tr>
+                <td>{u.unit_type === 'dept' ? $t('admin.units.dept') : $t('admin.units.branch')}</td>
+                <td><input class="ei" bind:value={eCode} aria-label={$t('admin.units.code')} /></td>
+                <td><input class="ei" bind:value={eName} aria-label={$t('admin.units.name')} /></td>
+                <td>
+                  <select class="ei" bind:value={eArea} aria-label={$t('admin.units.area')}>
+                    {#each areas as a (a.id)}<option value={a.id}>{a.name}</option>{/each}
+                  </select>
+                </td>
+                <td class="acts">
+                  <button class="lnk" onclick={saveEdit} disabled={savingEdit}>
+                    {savingEdit ? $t('admin.units.creating') : $t('common.save')}
+                  </button>
+                  <button class="lnk" onclick={() => (editId = null)} disabled={savingEdit}>{$t('common.cancel')}</button>
+                </td>
+              </tr>
+              {#if editErr}<tr><td colspan="5" class="err">{editErr}</td></tr>{/if}
+            {:else}
+              <tr>
+                <td>{u.unit_type === 'dept' ? $t('admin.units.dept') : $t('admin.units.branch')}</td>
+                <td class="code">{u.code}</td>
+                <td>{u.name}</td>
+                <td>{areaName(u.area_id)}</td>
+                <td class="acts"><button class="lnk" onclick={() => startEdit(u)}>{$t('common.edit')}</button></td>
+              </tr>
+            {/if}
           {/each}
         </tbody>
       </table>
@@ -273,6 +334,33 @@
   }
   .muted {
     color: var(--ink-muted);
+  }
+  .ei {
+    width: 100%;
+    padding: 0.35em 0.5em;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    color: var(--ink);
+    font: inherit;
+  }
+  .acts {
+    white-space: nowrap;
+  }
+  .lnk {
+    background: none;
+    border: 0;
+    color: var(--thread);
+    cursor: pointer;
+    font-size: var(--step--1);
+    padding: 0 0.3rem;
+  }
+  .lnk:hover {
+    color: var(--thread-strong);
+  }
+  .lnk[disabled] {
+    opacity: 0.5;
+    cursor: default;
   }
   @media (max-width: 560px) {
     .grid {

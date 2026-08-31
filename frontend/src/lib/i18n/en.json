@@ -130,6 +130,7 @@
   "admin.units.name": "Name",
   "admin.units.code": "Code",
   "admin.units.area": "Area",
+  "admin.units.actions": "Actions",
   "admin.units.password": "Login password",
   "admin.units.create": "Create unit",
   "admin.units.creating": "Creating…",

@@ -130,6 +130,7 @@
   "admin.units.name": "নাম",
   "admin.units.code": "কোড",
   "admin.units.area": "এলাকা",
+  "admin.units.actions": "কাজ",
   "admin.units.password": "লগইন পাসওয়ার্ড",
   "admin.units.create": "ইউনিট তৈরি করুন",
   "admin.units.creating": "তৈরি হচ্ছে…",
