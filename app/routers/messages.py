@@ -1,4 +1,5 @@
 import datetime as dt
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import case, func, or_, select
@@ -10,15 +11,25 @@ from app.schemas import ConversationOut, MessageIn, MessageOut
 router = APIRouter(prefix="/messages", tags=["messages"])
 
 
-def _require_unit(account: Account) -> None:
-    if account.org_unit_id is None:
+async def _acting_unit(account: Account, db, as_unit: str | None) -> uuid.UUID:
+    """The org unit this request speaks for. A branch/dept account is always its
+    own unit and cannot spoof another. A Super Admin has no unit, so they pass
+    one to act as via `?as=` / `sender_org_unit_id` — restricted to a department."""
+    if account.org_unit_id is not None:
+        return account.org_unit_id
+    if not account.is_super_admin:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Messaging is per org unit")
+    if not as_unit:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Choose a department to message as")
+    unit = await db.get(OrgUnit, as_unit)
+    if unit is None or unit.unit_type != "dept":
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Message-as unit must be a department")
+    return unit.id
 
 
 @router.get("/conversations", response_model=list[ConversationOut])
-async def conversations(account: AccountDep, db: DbDep):
-    _require_unit(account)
-    me = account.org_unit_id
+async def conversations(account: AccountDep, db: DbDep, as_: str | None = Query(default=None, alias="as")):
+    me = await _acting_unit(account, db, as_)
     other = case((Message.sender_org_unit_id == me, Message.recipient_org_unit_id),
                  else_=Message.sender_org_unit_id).label("other")
     # RLS already restricts messages to those involving `me`.
@@ -51,9 +62,13 @@ async def conversations(account: AccountDep, db: DbDep):
 
 
 @router.get("", response_model=list[MessageOut])
-async def thread(account: AccountDep, db: DbDep, with_: str = Query(alias="with")):
-    _require_unit(account)
-    me = account.org_unit_id
+async def thread(
+    account: AccountDep,
+    db: DbDep,
+    with_: str = Query(alias="with"),
+    as_: str | None = Query(default=None, alias="as"),
+):
+    me = await _acting_unit(account, db, as_)
     rows = await db.scalars(
         select(Message)
         .where(
@@ -73,13 +88,13 @@ async def send_message(
     account: Account = Depends(require_permission("message.send")),
     db: DbDep = None,
 ):
-    _require_unit(account)
-    if body.recipient_org_unit_id == account.org_unit_id:
+    me = await _acting_unit(account, db, body.sender_org_unit_id)
+    if body.recipient_org_unit_id == me:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Cannot message yourself")
     if await db.get(OrgUnit, body.recipient_org_unit_id) is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Unknown recipient")
     msg = Message(
-        sender_org_unit_id=account.org_unit_id,
+        sender_org_unit_id=me,
         recipient_org_unit_id=body.recipient_org_unit_id,
         sender_account_id=account.id,  # audit only, never serialized
         body=body.body,
@@ -90,10 +105,15 @@ async def send_message(
 
 
 @router.post("/{message_id}/read", status_code=status.HTTP_204_NO_CONTENT)
-async def mark_read(message_id: str, account: AccountDep, db: DbDep):
-    _require_unit(account)
+async def mark_read(
+    message_id: str,
+    account: AccountDep,
+    db: DbDep,
+    as_: str | None = Query(default=None, alias="as"),
+):
+    me = await _acting_unit(account, db, as_)
     msg = await db.get(Message, message_id)
-    if msg is None or msg.recipient_org_unit_id != account.org_unit_id:
+    if msg is None or msg.recipient_org_unit_id != me:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
     if msg.read_at is None:
         msg.read_at = dt.datetime.now(dt.UTC)

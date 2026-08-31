@@ -140,6 +140,9 @@ class PostPage(BaseModel):
 class MessageIn(BaseModel):
     recipient_org_unit_id: uuid.UUID
     body: str = Field(min_length=1)
+    # Super Admin only: the department to send as. Ignored for branch/dept
+    # accounts (they always send as their own unit).
+    sender_org_unit_id: uuid.UUID | None = None
 
 
 class MessageOut(BaseModel):

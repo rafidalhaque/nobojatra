@@ -16,18 +16,28 @@
   let draft = $state('');
   let sending = $state(false);
 
-  const myUnit = $derived(units.get($session?.org_unit_id));
-  const hasUnit = $derived(Boolean($session?.org_unit_id));
+  const isSuper = $derived(Boolean($session?.is_super_admin));
+  // Branch/dept accounts act as their own unit; a Super Admin picks a dept to act as.
+  let actingUnit = $state($session?.org_unit_id ?? '');
+  const canMessage = $derived(Boolean(actingUnit));
+  // non-super account with no unit: nothing to show
+  const noUnitNotice = $derived(!isSuper && !$session?.org_unit_id);
+  const myUnit = $derived(units.get(actingUnit));
+  const depts = $derived([...units.values()].filter((u) => u.unit_type === 'dept'));
+  const otherUnits = $derived([...units.values()].filter((u) => u.id !== actingUnit));
+
+  // Super Admin sends the acting dept along on every call; a unit account doesn't.
+  const asQuery = () => (isSuper && actingUnit ? { as: actingUnit } : {});
 
   onMount(async () => {
-    if (!hasUnit) {
+    if (noUnitNotice) {
       loading = false;
       return;
     }
     try {
-      const [us, convs] = await Promise.all([api('/org-units'), api('/messages/conversations')]);
+      const us = await api('/org-units');
       units = new Map(us.map((u) => [u.id, u]));
-      conversations = convs;
+      if (actingUnit) conversations = await api('/messages/conversations', { query: asQuery() });
     } catch (e) {
       error = e.detail ?? 'error';
     } finally {
@@ -35,14 +45,27 @@
     }
   });
 
+  async function chooseUnit() {
+    openWith = '';
+    thread = [];
+    conversations = [];
+    error = '';
+    if (!actingUnit) return;
+    try {
+      conversations = await api('/messages/conversations', { query: asQuery() });
+    } catch (e) {
+      error = e.detail ?? 'error';
+    }
+  }
+
   async function open(unitId) {
     openWith = unitId;
     threadLoading = true;
     try {
-      thread = await api('/messages', { query: { with: unitId } });
+      thread = await api('/messages', { query: { with: unitId, ...asQuery() } });
       for (const m of thread) {
-        if (m.recipient_org_unit_id === $session.org_unit_id && !m.read_at) {
-          api(`/messages/${m.id}/read`, { method: 'POST' }).catch(() => {});
+        if (m.recipient_org_unit_id === actingUnit && !m.read_at) {
+          api(`/messages/${m.id}/read`, { method: 'POST', query: asQuery() }).catch(() => {});
         }
       }
     } catch (e) {
@@ -58,7 +81,11 @@
     try {
       const m = await api('/messages', {
         method: 'POST',
-        body: { recipient_org_unit_id: openWith, body: draft }
+        body: {
+          recipient_org_unit_id: openWith,
+          body: draft,
+          ...(isSuper ? { sender_org_unit_id: actingUnit } : {})
+        }
       });
       thread = [...thread, m];
       draft = '';
@@ -68,22 +95,35 @@
       sending = false;
     }
   }
-
-  const otherUnits = $derived([...units.values()].filter((u) => u.id !== $session?.org_unit_id));
 </script>
 
 <svelte:head><title>{$t('messages.heading')} · Nobojatra</title></svelte:head>
 
 <h1>{$t('messages.heading')}</h1>
-{#if myUnit}<p class="asunit label">{$t('messages.fromUnit', { unit: unitLabel(myUnit) })}</p>{/if}
+{#if myUnit && !isSuper}<p class="asunit label">{$t('messages.fromUnit', { unit: unitLabel(myUnit) })}</p>{/if}
 
-{#if !hasUnit}
+{#if noUnitNotice}
   <p class="muted center">{$t('messages.noUnit')}</p>
 {:else if loading}
   <Spinner block />
-{:else if error}
-  <p class="err" role="alert">{$t('common.error', { detail: error })}</p>
 {:else}
+  {#if isSuper}
+    <label class="actas">
+      {$t('messages.messageAs')}
+      <select bind:value={actingUnit} onchange={chooseUnit}>
+        <option value="" disabled>—</option>
+        {#each depts as u (u.id)}<option value={u.id}>{unitLabel(u)}</option>{/each}
+      </select>
+    </label>
+  {/if}
+
+  {#if error}
+    <p class="err" role="alert">{$t('common.error', { detail: error })}</p>
+  {/if}
+
+  {#if !canMessage}
+    <p class="muted center">{$t('messages.pickDept')}</p>
+  {:else}
   <div class="split">
     <aside>
       <label class="newconv">
@@ -117,7 +157,7 @@
       {:else}
         <ol class="bubbles" lang={$lang}>
           {#each thread as m (m.id)}
-            <li class:mine={m.sender_org_unit_id === $session.org_unit_id}>
+            <li class:mine={m.sender_org_unit_id === actingUnit}>
               <p>{m.body}</p>
               <time>{fmtDate(m.created_at, true)}</time>
             </li>
@@ -132,12 +172,27 @@
       {/if}
     </section>
   </div>
+  {/if}
 {/if}
 
 <style>
   .asunit {
     color: var(--seal);
     margin-top: -0.5rem;
+  }
+  .actas {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: var(--step--1);
+    color: var(--ink-muted);
+  }
+  .actas select {
+    padding: 0.4em 0.6em;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--paper);
   }
   .split {
     display: grid;
