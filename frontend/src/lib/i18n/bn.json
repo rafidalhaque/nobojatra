@@ -60,6 +60,8 @@
   "editor.media": "সংযুক্তি",
   "editor.addMedia": "ফাইল যোগ করুন",
   "editor.filesSelected": "{n}টি ফাইল নির্বাচিত",
+  "editor.dropHint": "ফাইল এখানে টেনে আনুন, অথবা ব্রাউজ করতে ক্লিক করুন",
+  "editor.remove": "সরান",
   "editor.postAs": "যে হিসেবে পোস্ট",
   "editor.pickUnitFirst": "কোন শাখা বা বিভাগ হিসেবে পোস্ট করবেন বেছে নিন।",
 

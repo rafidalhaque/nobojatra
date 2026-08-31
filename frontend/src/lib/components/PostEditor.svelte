@@ -25,7 +25,19 @@
   let orgUnitId = $state('');
   let noticeDate = $state(''); // datetime-local; blank -> backend uses now()
   let files = $state([]);
+  let dragOver = $state(false);
   let status = $state('draft');
+
+  const fileKey = (f) => `${f.name}:${f.size}:${f.lastModified}`;
+
+  function addFiles(list) {
+    const seen = new Set(files.map(fileKey));
+    const next = [...(list ?? [])].filter((f) => !seen.has(fileKey(f)));
+    if (next.length) files = [...files, ...next];
+  }
+  function removeFile(i) {
+    files = files.filter((_, n) => n !== i);
+  }
 
   onMount(async () => {
     try {
@@ -138,9 +150,34 @@
       </div>
 
       <div class="field">
-        <label for="m">{$t('editor.media')}</label>
-        <input id="m" type="file" multiple onchange={(e) => (files = [...e.currentTarget.files])} />
-        {#if files.length}<small>{$t('editor.filesSelected', { n: files.length })}</small>{/if}
+        <span class="lbl">{$t('editor.media')}</span>
+        <label
+          class="drop"
+          class:over={dragOver}
+          ondragover={(e) => (e.preventDefault(), (dragOver = true))}
+          ondragleave={() => (dragOver = false)}
+          ondrop={(e) => (e.preventDefault(), (dragOver = false), addFiles(e.dataTransfer?.files))}
+        >
+          <input
+            type="file"
+            multiple
+            onchange={(e) => {
+              addFiles(e.currentTarget.files);
+              e.currentTarget.value = ''; // allow re-picking the same file
+            }}
+          />
+          <span>{$t('editor.dropHint')}</span>
+        </label>
+        {#if files.length}
+          <ul class="files">
+            {#each files as f, i (fileKey(f))}
+              <li>
+                <span class="fn">{f.name}</span>
+                <button type="button" class="rm" onclick={() => removeFile(i)} aria-label={$t('editor.remove')}>×</button>
+              </li>
+            {/each}
+          </ul>
+        {/if}
       </div>
 
       {#if error}<p class="err" role="alert">{$t('common.error', { detail: error })}</p>{/if}
@@ -195,6 +232,64 @@
   small {
     color: var(--ink-muted);
     font-size: var(--step--1);
+  }
+  .lbl {
+    display: block;
+    margin-bottom: 0.35em;
+  }
+  .drop {
+    display: block;
+    border: 1.5px dashed var(--rule);
+    border-radius: var(--radius);
+    padding: 1rem;
+    text-align: center;
+    color: var(--ink-muted);
+    font-size: var(--step--1);
+    cursor: pointer;
+  }
+  .drop:hover,
+  .drop.over {
+    border-color: var(--thread);
+    color: var(--thread-strong);
+    background: color-mix(in srgb, var(--thread) 6%, transparent);
+  }
+  .drop input {
+    display: none;
+  }
+  .files {
+    list-style: none;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 2px;
+  }
+  .files li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.55rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--paper);
+    font-size: var(--step--1);
+  }
+  .fn {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .rm {
+    border: 0;
+    background: none;
+    cursor: pointer;
+    color: var(--ink-muted);
+    font-size: 1.15rem;
+    line-height: 1;
+    padding: 0 0.25rem;
+  }
+  .rm:hover {
+    color: var(--danger);
   }
   .actions {
     display: flex;

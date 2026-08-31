@@ -11,6 +11,5 @@
 
 <span class="stamp" title={unit?.name ?? unitId}>
   <b>{unit ? unitLabel(unit) : (unitId ?? '—').slice(0, 8)}</b>
-  {#if unit?.unit_type}<span>{unit.unit_type}</span>{/if}
   {#if date}<span>{date}</span>{/if}
 </span>

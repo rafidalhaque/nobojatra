@@ -60,6 +60,8 @@
   "editor.media": "Attachments",
   "editor.addMedia": "Add files",
   "editor.filesSelected": "{n} file(s) selected",
+  "editor.dropHint": "Drag files here, or click to browse",
+  "editor.remove": "Remove",
   "editor.postAs": "Post as",
   "editor.pickUnitFirst": "Choose which branch or department to post as.",
 

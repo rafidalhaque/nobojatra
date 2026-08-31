@@ -26,5 +26,5 @@ export function fmtDate(iso, withTime = false) {
 
 export function unitLabel(unit) {
   if (!unit) return '';
-  return unit.code || unit.name || '';
+  return unit.name || unit.code || '';
 }
