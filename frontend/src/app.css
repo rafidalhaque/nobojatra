@@ -47,7 +47,10 @@
   --rule: #c9c8be;
   --danger: #9e3024;
 
-  --font-latin: 'Carlito', 'Calibri', 'Segoe UI', system-ui, sans-serif;
+  /* Bangla faces sit in the Latin stack too (after the Latin faces, before the
+     system generics) so dynamic Bangla content renders in Tiro Bangla via
+     per-glyph fallback even in elements not marked lang="bn". */
+  --font-latin: 'Carlito', 'Calibri', 'Segoe UI', 'Helvetica Neue', Arial, 'Tiro Bangla', 'Noto Serif Bengali', system-ui, sans-serif;
   --font-bangla: 'Tiro Bangla', 'Noto Serif Bengali', 'Nirmala UI', serif;
 
   --step--1: 0.8125rem;
