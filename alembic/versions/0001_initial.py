@@ -17,11 +17,11 @@ down_revision = None
 branch_labels = None
 depends_on = None
 
-unit_type = postgresql.ENUM("branch", "dept", name="unit_type")
-post_status = postgresql.ENUM("draft", "published", name="post_status")
-notif_status = postgresql.ENUM("read", "unread", name="notif_status")
-theme_pref = postgresql.ENUM("light", "dark", name="theme_pref")
-lang_pref = postgresql.ENUM("en", "bn", name="lang_pref")
+unit_type = postgresql.ENUM("branch", "dept", name="unit_type", create_type=False)
+post_status = postgresql.ENUM("draft", "published", name="post_status", create_type=False)
+notif_status = postgresql.ENUM("read", "unread", name="notif_status", create_type=False)
+theme_pref = postgresql.ENUM("light", "dark", name="theme_pref", create_type=False)
+lang_pref = postgresql.ENUM("en", "bn", name="lang_pref", create_type=False)
 
 _ts = sa.text("now()")
 
