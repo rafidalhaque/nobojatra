@@ -113,6 +113,10 @@
   "admin.areas.empty": "এখনো কোনো এলাকা নেই।",
   "admin.areas.deleteConfirm": "\"{name}\" এলাকাটি মুছবেন?",
   "admin.areas.inUse": "এই এলাকায় এখনো শাখা বা বিভাগ আছে।",
+  "admin.areas.bulk": "একসাথে যোগ — প্রতি লাইনে একটি এলাকার নাম",
+  "admin.areas.bulkAdd": "সব যোগ করুন",
+  "admin.areas.bulkAdding": "যোগ হচ্ছে…",
+  "admin.areas.bulkResult": "{added}টি যোগ, {skipped}টি বাদ।",
 
   "admin.units.createOne": "একটি তৈরি করুন",
   "admin.units.importCsv": "একসাথে ইমপোর্ট (CSV)",

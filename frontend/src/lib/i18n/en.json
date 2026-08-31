@@ -113,6 +113,10 @@
   "admin.areas.empty": "No areas yet.",
   "admin.areas.deleteConfirm": "Delete area \"{name}\"?",
   "admin.areas.inUse": "That area still has branches or departments.",
+  "admin.areas.bulk": "Bulk add — one area name per line",
+  "admin.areas.bulkAdd": "Add all",
+  "admin.areas.bulkAdding": "Adding…",
+  "admin.areas.bulkResult": "Added {added}, skipped {skipped}.",
 
   "admin.units.createOne": "Create one",
   "admin.units.importCsv": "Bulk import (CSV)",

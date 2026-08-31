@@ -9,6 +9,9 @@
   let areas = $state([]);
   let name = $state('');
   let adding = $state(false);
+  let bulkText = $state('');
+  let bulking = $state(false);
+  let bulkMsg = $state('');
 
   onMount(load);
 
@@ -39,6 +42,38 @@
     }
   }
 
+  async function bulkAdd() {
+    if (bulking) return;
+    const have = new Set(areas.map((a) => a.name.toLowerCase()));
+    const names = [];
+    for (const raw of bulkText.split(/\r?\n/)) {
+      const n = raw.trim();
+      if (n && !have.has(n.toLowerCase())) {
+        have.add(n.toLowerCase());
+        names.push(n);
+      }
+    }
+    if (!names.length) return;
+    bulking = true;
+    bulkMsg = '';
+    error = '';
+    let added = 0;
+    const failed = [];
+    for (const n of names) {
+      try {
+        const a = await api('/areas', { method: 'POST', body: { name: n } });
+        areas = [...areas, a];
+        added++;
+      } catch {
+        failed.push(n);
+      }
+    }
+    areas = [...areas].sort((x, y) => x.name.localeCompare(y.name));
+    bulkMsg = $t('admin.areas.bulkResult', { added, skipped: names.length - added });
+    bulkText = failed.join('\n'); // keep the ones that didn't take, for a retry
+    bulking = false;
+  }
+
   async function remove(a) {
     if (!confirm($t('admin.areas.deleteConfirm', { name: a.name }))) return;
     error = '';
@@ -61,6 +96,15 @@
     {adding ? $t('admin.areas.adding') : $t('common.add')}
   </button>
 </form>
+
+<details class="bulk">
+  <summary>{$t('admin.areas.bulk')}</summary>
+  <textarea bind:value={bulkText} rows="5" aria-label={$t('admin.areas.bulk')}></textarea>
+  <button class="btn" onclick={bulkAdd} disabled={bulking || !bulkText.trim()}>
+    {bulking ? $t('admin.areas.bulkAdding') : $t('admin.areas.bulkAdd')}
+  </button>
+  {#if bulkMsg}<p class="ok">{bulkMsg}</p>{/if}
+</details>
 
 {#if error}<p class="err" role="alert">{$t('common.error', { detail: error })}</p>{/if}
 
@@ -125,5 +169,28 @@
   }
   .err {
     color: var(--danger);
+  }
+  .bulk {
+    max-width: 32rem;
+    margin: -0.5rem 0 1.5rem;
+  }
+  .bulk summary {
+    cursor: pointer;
+    color: var(--thread);
+    font-size: var(--step--1);
+  }
+  .bulk textarea {
+    width: 100%;
+    margin: 0.5rem 0;
+    padding: 0.55em 0.7em;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    font-family: var(--font-latin);
+    resize: vertical;
+  }
+  .ok {
+    color: var(--thread-strong);
+    font-size: var(--step--1);
   }
 </style>
