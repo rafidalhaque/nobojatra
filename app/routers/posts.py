@@ -125,6 +125,7 @@ async def create_post(
         post.created_at = body.created_at
     if body.status == "published":
         post.published_at = dt.datetime.now(dt.UTC)
+    post.media = []  # ponytail: new post has none; skips a lazy-load on serialize
     db.add(post)
     await db.flush()
     if post.status == "published":
