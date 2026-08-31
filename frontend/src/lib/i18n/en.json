@@ -70,6 +70,7 @@
   "messages.send": "Send",
   "messages.sending": "Sending…",
   "messages.fromUnit": "Sent as {unit}",
+  "messages.noUnit": "Messaging is between branches and departments. Your account is not attached to one, so there is nothing to show here.",
 
   "notifications.heading": "Notifications",
   "notifications.markAll": "Mark all read",

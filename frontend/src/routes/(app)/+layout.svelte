@@ -36,7 +36,7 @@
 
   const nav = $derived([
     { href: '/', key: 'nav.feed', glyph: '▤' },
-    { href: '/messages', key: 'nav.messages', glyph: '✉' },
+    ...($session?.org_unit_id ? [{ href: '/messages', key: 'nav.messages', glyph: '✉' }] : []),
     { href: '/notifications', key: 'nav.notifications', glyph: '❈' },
     { href: '/directory', key: 'nav.directory', glyph: '☰' },
     ...($session?.is_super_admin ? [{ href: '/admin', key: 'nav.admin', glyph: '⚙' }] : [])

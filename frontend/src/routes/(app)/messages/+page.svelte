@@ -17,8 +17,13 @@
   let sending = $state(false);
 
   const myUnit = $derived(units.get($session?.org_unit_id));
+  const hasUnit = $derived(Boolean($session?.org_unit_id));
 
   onMount(async () => {
+    if (!hasUnit) {
+      loading = false;
+      return;
+    }
     try {
       const [us, convs] = await Promise.all([api('/org-units'), api('/messages/conversations')]);
       units = new Map(us.map((u) => [u.id, u]));
@@ -72,7 +77,9 @@
 <h1>{$t('messages.heading')}</h1>
 {#if myUnit}<p class="asunit label">{$t('messages.fromUnit', { unit: unitLabel(myUnit) })}</p>{/if}
 
-{#if loading}
+{#if !hasUnit}
+  <p class="muted center">{$t('messages.noUnit')}</p>
+{:else if loading}
   <Spinner block />
 {:else if error}
   <p class="err" role="alert">{$t('common.error', { detail: error })}</p>

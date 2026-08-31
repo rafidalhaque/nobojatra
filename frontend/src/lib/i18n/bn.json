@@ -70,6 +70,7 @@
   "messages.send": "পাঠান",
   "messages.sending": "পাঠানো হচ্ছে…",
   "messages.fromUnit": "{unit} হিসেবে পাঠানো",
+  "messages.noUnit": "মেসেজ চালাচালি হয় শাখা ও দপ্তরের মধ্যে। আপনার অ্যাকাউন্ট কোনো শাখা বা দপ্তরের সঙ্গে যুক্ত নয়, তাই এখানে দেখানোর কিছু নেই।",
 
   "notifications.heading": "বিজ্ঞপ্তি",
   "notifications.markAll": "সব পঠিত চিহ্নিত করুন",
