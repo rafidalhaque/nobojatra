@@ -2,7 +2,7 @@ import csv
 import io
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 
 from app.deps import AccountDep, DbDep, SuperAdminDep
@@ -67,12 +67,20 @@ async def update_unit(unit_id: str, body: OrgUnitPatch, _: SuperAdminDep, db: Db
         unit.area_id = body.area_id
     if body.name is not None:
         unit.name = body.name
-    if body.code is not None:
+    if body.code is not None and body.code != unit.code:
+        # the unit's login username is seeded from its code at creation — keep it
+        # in sync so the rename actually changes how the unit signs in
+        await db.execute(
+            update(Account)
+            .where(Account.org_unit_id == unit.id, Account.username == unit.code)
+            .values(username=body.code)
+            .execution_options(synchronize_session=False)
+        )
         unit.code = body.code
     try:
         await db.flush()
     except IntegrityError:
-        raise HTTPException(status.HTTP_409_CONFLICT, "Duplicate code")
+        raise HTTPException(status.HTTP_409_CONFLICT, "Duplicate code / username")
     await db.refresh(unit)  # repopulate server-side updated_at before serialize
     return unit
 
