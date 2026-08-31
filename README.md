@@ -6,7 +6,7 @@ messaging. No public surface, no self-registration. See `docs/spec.md`, `docs/pr
 ## Stack
 
 FastAPI + PostgreSQL (two-tier user model + RLS) + S3 (SSE) + ntfy + SvelteKit (CSR/static).
-Backend deps via **uv**. Everything dockerized (`docker compose up`).
+Backend deps via **uv**. API/frontend/ntfy via `docker compose`; Postgres on the host.
 
 ## Layout
 
@@ -19,16 +19,29 @@ app/                FastAPI application
   cli.py            create-super-admin (CLI-only, no UI path)
 alembic/            migrations (run as schema-owner user only)
 scripts/            export_openapi.py -> docs/spec.yml (CI artifact)
-docker/             postgres-init.sh (provisions RLS-constrained app role)
+docker/             postgres-init.sh (provisions the RLS app role on host Postgres)
 tests/              DB-free self-checks
 frontend/           SvelteKit app  (next phase)
 ```
 
 ## Run — Docker
 
+Postgres runs on the **host**, not in compose. Provision it first:
+
 ```bash
-cp .env.example .env          # then set JWT_SECRET and passwords
-docker compose up --build     # postgres, ntfy, migrate (one-shot), api, web
+cp .env.example .env          # set JWT_SECRET, DB + S3 credentials
+# create DB + owner role as a PG superuser, then the app role:
+sudo -u postgres psql -c "CREATE ROLE nobojatra_owner LOGIN PASSWORD 'owner-pw';" \
+                      -c "CREATE DATABASE nobojatra OWNER nobojatra_owner;"
+set -a; . ./.env; set +a
+PGPASSWORD="$POSTGRES_PASSWORD" ./docker/postgres-init.sh
+```
+
+Point `DATABASE_URL` / `DATABASE_URL_OWNER` in `.env` at the host — use
+`host.docker.internal:5432` (compose maps it via `extra_hosts`). Then:
+
+```bash
+docker compose up --build     # ntfy, migrate (one-shot), api, web
 docker compose run --rm api uv run python -m app.cli create-super-admin --username root
 ```
 

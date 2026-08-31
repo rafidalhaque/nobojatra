@@ -1,23 +1,11 @@
 name: nobojatra
 
-services:
-  postgres:
-    image: postgres:16
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      APP_DB_USER: ${APP_DB_USER}
-      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-      - ./docker/postgres-init.sh:/docker-entrypoint-initdb.d/10-app-role.sh:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+# Postgres is NOT run here — point DATABASE_URL / DATABASE_URL_OWNER in .env at the
+# host database. From these containers the host is `host.docker.internal` (mapped
+# below), e.g. postgresql+asyncpg://nobojatra_app:pw@host.docker.internal:5432/nobojatra
+# Provision the two roles + database first: see docker/postgres-init.sh.
 
+services:
   ntfy:
     image: binwiederhier/ntfy
     command: serve
@@ -30,33 +18,33 @@ services:
     ports: ["8080:80"]
 
   migrate:
-    build: .
+    build:
+      context: .
+      network: host
     command: uv run alembic upgrade head
     env_file: .env
-    environment:
-      DATABASE_URL_OWNER: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-    depends_on:
-      postgres:
-        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: "no"
 
   api:
-    build: .
+    build:
+      context: .
+      network: host
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://${APP_DB_USER}:${APP_DB_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      DATABASE_URL_OWNER: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       NTFY_URL: http://ntfy:80
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports: ["8000:8000"]
     depends_on:
-      postgres:
-        condition: service_healthy
       migrate:
         condition: service_completed_successfully
 
   web:
     build:
       context: ./frontend
+      network: host
       args:
         VITE_API_BASE: /api
     ports: ["80:80"]
@@ -67,5 +55,4 @@ services:
     # volume + listen 443 here. App assumes it is served over https in prod.
 
 volumes:
-  pgdata:
   ntfydata:
