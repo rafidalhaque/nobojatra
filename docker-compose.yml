@@ -18,23 +18,6 @@ services:
       timeout: 5s
       retries: 10
 
-  minio:
-    image: minio/minio
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: ${S3_ACCESS_KEY}
-      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY}
-      # enables SSE-S3 (AES256) locally; real deploys use the bucket's default encryption
-      MINIO_KMS_SECRET_KEY: nobojatra-dev-key:bm9ib2phdHJhLWRldi0zMi1ieXRlLXNlY3JldC1rISE=
-    volumes:
-      - miniodata:/data
-    ports: ["9000:9000", "9001:9001"]
-    healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   ntfy:
     image: binwiederhier/ntfy
     command: serve
@@ -63,14 +46,11 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://${APP_DB_USER}:${APP_DB_PASSWORD}@postgres:5432/${POSTGRES_DB}
       DATABASE_URL_OWNER: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      S3_ENDPOINT_URL: http://minio:9000
       NTFY_URL: http://ntfy:80
     ports: ["8000:8000"]
     depends_on:
       postgres:
         condition: service_healthy
-      minio:
-        condition: service_started
       migrate:
         condition: service_completed_successfully
 
@@ -88,5 +68,4 @@ services:
 
 volumes:
   pgdata:
-  miniodata:
   ntfydata:

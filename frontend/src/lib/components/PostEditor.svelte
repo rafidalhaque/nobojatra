@@ -9,7 +9,7 @@
   let { postId } = $props();
   const editing = $derived(!!postId);
 
-  let loading = $state(editing);
+  let loading = $state(true);
   let saving = $state('');
   let error = $state('');
   let categories = $state([]);

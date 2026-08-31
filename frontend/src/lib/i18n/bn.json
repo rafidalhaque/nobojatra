@@ -1,21 +1,21 @@
 {
   "brand.name": "নবযাত্রা",
-  "brand.tagline": "অভ্যন্তরীণ বোর্ড",
+  "brand.tagline": "নোটিশবোর্ড",
 
   "lang.toggle": "English",
-  "theme.toLight": "দিনের থিম",
-  "theme.toDark": "রাতের থিম",
+  "theme.toLight": "দিন",
+  "theme.toDark": "রাত",
 
   "common.loading": "লোড হচ্ছে…",
   "common.retry": "আবার চেষ্টা করুন",
   "common.cancel": "বাতিল",
-  "common.save": "সংরক্ষণ",
+  "common.save": "সংরক্ষণ করুন",
   "common.saving": "সংরক্ষণ হচ্ছে…",
   "common.search": "খুঁজুন",
   "common.none": "এখনো কিছু নেই।",
   "common.error": "কিছু একটা সমস্যা হয়েছে। {detail}",
 
-  "login.heading": "বোর্ডে সাইন ইন করুন",
+  "login.heading": "নোটিশবোর্ডে সাইন ইন করুন",
   "login.username": "ইউজারনেম",
   "login.password": "পাসওয়ার্ড",
   "login.submit": "সাইন ইন",

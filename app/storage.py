@@ -7,6 +7,7 @@ from typing import BinaryIO
 
 import boto3
 from botocore.config import Config
+from botocore.exceptions import ClientError
 
 from app.config import get_settings
 
@@ -14,17 +15,24 @@ settings = get_settings()
 
 _client = boto3.client(
     "s3",
-    endpoint_url=settings.s3_endpoint_url,
+    # blank endpoint => real AWS S3; set only for a custom / S3-compatible endpoint.
+    endpoint_url=settings.s3_endpoint_url or None,
     region_name=settings.s3_region,
-    aws_access_key_id=settings.s3_access_key,
-    aws_secret_access_key=settings.s3_secret_key,
+    aws_access_key_id=settings.s3_access_key or None,
+    aws_secret_access_key=settings.s3_secret_key or None,
     config=Config(signature_version="s3v4"),
 )
 
 
 def ensure_bucket() -> None:
-    existing = {b["Name"] for b in _client.list_buckets().get("Buckets", [])}
-    if settings.s3_bucket not in existing:
+    try:
+        _client.head_bucket(Bucket=settings.s3_bucket)
+        return
+    except ClientError:
+        pass
+    # On AWS the bucket is provisioned out of band (with default encryption). Only
+    # auto-create against a custom endpoint (local / S3-compatible dev).
+    if settings.s3_endpoint_url:
         _client.create_bucket(Bucket=settings.s3_bucket)
 
 

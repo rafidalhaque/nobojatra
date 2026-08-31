@@ -36,7 +36,9 @@
   const canEdit = $derived(
     !!post && !!$session && ($session.is_super_admin || $session.org_unit_id === post.org_unit_id)
   );
-  const isImage = (m) => (m.content_type ?? '').startsWith('image/');
+  // mirror the API's inline-render allowlist (svg is served as a download, not rendered)
+  const INLINE_IMG = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+  const isImage = (m) => INLINE_IMG.includes((m.content_type ?? '').toLowerCase());
 </script>
 
 <svelte:head><title>{post?.title ?? $t('feed.heading')} · Nobojatra</title></svelte:head>

@@ -1,4 +1,5 @@
 import datetime as dt
+from urllib.parse import quote
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFile, status
 from fastapi.responses import StreamingResponse
@@ -222,6 +223,13 @@ async def delete_media(
     await db.delete(m)
 
 
+# Types safe to render in the browser. Anything else is forced to download as an
+# opaque blob so a mislabeled text/html or script-bearing SVG can't execute in
+# this origin (the SPA and this API share one origin). Uploads are still accepted
+# unrestricted (spec 5) — this only governs how bytes are served back.
+_INLINE_OK = ("image/png", "image/jpeg", "image/gif", "image/webp", "application/pdf")
+
+
 @router.get("/media/{media_id}")
 async def get_media(media_id: str, _: AccountDep, db: DbDep):
     """Auth-gated proxy. No public S3 URLs are ever issued (spec 11.2)."""
@@ -232,10 +240,19 @@ async def get_media(media_id: str, _: AccountDep, db: DbDep):
     if await db.get(Post, m.post_id) is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
     chunks, content_type, length = storage.open_stream(m.s3_key)
+
+    ct = (content_type or "").split(";")[0].strip().lower()
+    inline = ct in _INLINE_OK
+    served_type = ct if inline else "application/octet-stream"
+    filename = quote(m.original_filename or "file", safe="")
+
     headers = {
         "Cache-Control": "no-store",
-        "Content-Disposition": f'inline; filename="{m.original_filename}"',
+        "X-Content-Type-Options": "nosniff",
+        # neutralizes any HTML/SVG that slips through, even if rendered inline
+        "Content-Security-Policy": "default-src 'none'; sandbox; base-uri 'none'",
+        "Content-Disposition": f"{'inline' if inline else 'attachment'}; filename*=UTF-8''{filename}",
     }
     if length is not None:
         headers["Content-Length"] = str(length)
-    return StreamingResponse(chunks, media_type=content_type or "application/octet-stream", headers=headers)
+    return StreamingResponse(chunks, media_type=served_type, headers=headers)

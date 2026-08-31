@@ -28,13 +28,16 @@ frontend/           SvelteKit app  (next phase)
 
 ```bash
 cp .env.example .env          # then set JWT_SECRET and passwords
-docker compose up --build     # postgres, minio, ntfy, migrate (one-shot), api, web
+docker compose up --build     # postgres, ntfy, migrate (one-shot), api, web
 docker compose run --rm api uv run python -m app.cli create-super-admin --username root
 ```
 
 - App: http://localhost  (nginx serves the static build, proxies `/api` to the API)
 - API direct: http://localhost:8000 — `/docs` Swagger, `/health` liveness
-- MinIO console: http://localhost:9001
+
+Media goes to AWS S3 — set `S3_BUCKET` / `S3_REGION` / `S3_ACCESS_KEY` / `S3_SECRET_KEY`
+in `.env` (leave `S3_ENDPOINT_URL` blank). Create the bucket with default encryption
+enabled; the app does not create it on AWS.
 
 ## Run — frontend alone
 
