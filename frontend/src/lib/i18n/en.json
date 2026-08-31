@@ -46,6 +46,8 @@
   "post.updatedOn": "Updated {date}",
   "post.backToFeed": "Back to notices",
   "post.notFound": "That notice isn't available.",
+  "post.deleteConfirm": "Delete this notice permanently? This cannot be undone.",
+  "post.deleting": "Deleting…",
 
   "editor.newHeading": "New notice",
   "editor.editHeading": "Edit notice",

@@ -46,6 +46,8 @@
   "post.updatedOn": "হালনাগাদ {date}",
   "post.backToFeed": "নোটিশে ফিরুন",
   "post.notFound": "নোটিশটি পাওয়া যায়নি।",
+  "post.deleteConfirm": "এই নোটিশ স্থায়ীভাবে মুছে ফেলবেন? এটি আর ফেরানো যাবে না।",
+  "post.deleting": "মুছে ফেলা হচ্ছে…",
 
   "editor.newHeading": "নতুন নোটিশ",
   "editor.editHeading": "নোটিশ সম্পাদনা",

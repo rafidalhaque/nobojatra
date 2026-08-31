@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
+  import { goto } from '$app/navigation';
   import { api } from '$lib/api.js';
   import { t, lang } from '$lib/i18n';
   import { session } from '$lib/stores.js';
@@ -36,6 +37,19 @@
   const canEdit = $derived(
     !!post && !!$session && ($session.is_super_admin || $session.org_unit_id === post.org_unit_id)
   );
+
+  let deleting = $state(false);
+  async function del() {
+    if (deleting || !confirm($t('post.deleteConfirm'))) return;
+    deleting = true;
+    try {
+      await api(`/posts/${post.id}`, { method: 'DELETE' });
+      await goto('/');
+    } catch (e) {
+      error = e.detail ?? 'error';
+      deleting = false;
+    }
+  }
   // mirror the API's inline-render allowlist (svg is served as a download, not rendered)
   const INLINE_IMG = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
   const isImage = (m) => INLINE_IMG.includes((m.content_type ?? '').toLowerCase());
@@ -66,7 +80,12 @@
     </div>
 
     {#if canEdit}
-      <p><a class="btn btn--ghost" href={`/posts/${post.id}/edit`}>{$t('editor.editHeading')}</a></p>
+      <p class="owner-actions">
+        <a class="btn btn--ghost" href={`/posts/${post.id}/edit`}>{$t('editor.editHeading')}</a>
+        <button type="button" class="btn del" onclick={del} disabled={deleting}>
+          {deleting ? $t('post.deleting') : $t('common.delete')}
+        </button>
+      </p>
     {/if}
 
     <!-- markdown is sanitized in renderMarkdown() -->
@@ -148,5 +167,18 @@
   }
   .err {
     color: var(--danger);
+  }
+  .owner-actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .del {
+    background: transparent;
+    color: var(--danger);
+    border-color: var(--rule);
+  }
+  .del:hover {
+    background: color-mix(in srgb, var(--danger) 10%, transparent);
   }
 </style>
