@@ -2,28 +2,38 @@
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { api } from '$lib/api.js';
+  import { session } from '$lib/stores.js';
   import { t, lang } from '$lib/i18n';
+  import { unitLabel } from '$lib/format.js';
   import Spinner from '$lib/components/Spinner.svelte';
 
   /** @type {{ postId?: string }} */
   let { postId } = $props();
   const editing = $derived(!!postId);
+  // Super Admin has no org unit, so on a NEW post they must name one to post as.
+  const needsUnitPick = $derived(!editing && !!$session?.is_super_admin && !$session?.org_unit_id);
 
   let loading = $state(true);
   let saving = $state('');
   let error = $state('');
   let categories = $state([]);
+  let units = $state([]);
 
   let title = $state('');
   let body = $state('');
   let categoryId = $state('');
+  let orgUnitId = $state('');
   let noticeDate = $state(''); // datetime-local; blank -> backend uses now()
   let files = $state([]);
   let status = $state('draft');
 
   onMount(async () => {
     try {
-      categories = await api('/categories');
+      const reqs = [api('/categories')];
+      if (needsUnitPick) reqs.push(api('/org-units'));
+      const [cats, us] = await Promise.all(reqs);
+      categories = cats;
+      if (us) units = us;
       if (editing) {
         const p = await api(`/posts/${postId}`);
         title = p.title;
@@ -49,13 +59,18 @@
 
   async function save(publish) {
     if (saving) return;
+    if (needsUnitPick && !orgUnitId) {
+      error = $t('editor.pickUnitFirst');
+      return;
+    }
     saving = publish ? 'publish' : 'draft';
     error = '';
     const payload = {
       title,
       body,
       category_id: categoryId,
-      created_at: noticeDate ? new Date(noticeDate).toISOString() : null
+      created_at: noticeDate ? new Date(noticeDate).toISOString() : null,
+      ...(needsUnitPick ? { org_unit_id: orgUnitId } : {})
     };
     try {
       let post;
@@ -99,6 +114,16 @@
     </div>
 
     <aside class="side">
+      {#if needsUnitPick}
+        <div class="field">
+          <label for="ou">{$t('editor.postAs')}</label>
+          <select id="ou" bind:value={orgUnitId} required>
+            <option value="" disabled>—</option>
+            {#each units as u (u.id)}<option value={u.id}>{unitLabel(u)}</option>{/each}
+          </select>
+        </div>
+      {/if}
+
       <div class="field">
         <label for="c">{$t('editor.category')}</label>
         <select id="c" bind:value={categoryId} required>

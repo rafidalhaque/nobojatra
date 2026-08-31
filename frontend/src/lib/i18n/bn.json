@@ -60,6 +60,8 @@
   "editor.media": "সংযুক্তি",
   "editor.addMedia": "ফাইল যোগ করুন",
   "editor.filesSelected": "{n}টি ফাইল নির্বাচিত",
+  "editor.postAs": "যে হিসেবে পোস্ট",
+  "editor.pickUnitFirst": "কোন শাখা বা বিভাগ হিসেবে পোস্ট করবেন বেছে নিন।",
 
   "messages.heading": "মেসেজ",
   "messages.empty": "এখনো কোনো মেসেজ নেই।",

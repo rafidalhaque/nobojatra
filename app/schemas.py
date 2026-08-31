@@ -94,6 +94,9 @@ class PostIn(BaseModel):
     category_id: uuid.UUID
     status: Literal["draft", "published"] = "draft"
     created_at: dt.datetime | None = None  # user-fillable; None -> row timestamp
+    # Super Admin only: the org unit to attribute the post to. Ignored for
+    # branch/dept accounts (they always post as their own unit).
+    org_unit_id: uuid.UUID | None = None
 
 
 class PostPatch(BaseModel):

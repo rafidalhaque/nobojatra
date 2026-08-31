@@ -60,6 +60,8 @@
   "editor.media": "Attachments",
   "editor.addMedia": "Add files",
   "editor.filesSelected": "{n} file(s) selected",
+  "editor.postAs": "Post as",
+  "editor.pickUnitFirst": "Choose which branch or department to post as.",
 
   "messages.heading": "Messages",
   "messages.empty": "No conversations yet.",

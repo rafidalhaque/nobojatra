@@ -98,13 +98,24 @@ async def create_post(
     account: Account = Depends(require_permission("post.create")),
     db: DbDep = None,
 ):
-    if account.org_unit_id is None:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "Super Admin posts via an org unit only")
+    # Branch/dept accounts post as their own unit. Super Admin has no unit, so
+    # they must name one to attribute the post to (posts are always org-unit
+    # attributed — spec 6).
+    if account.org_unit_id is not None:
+        target_unit_id = account.org_unit_id
+    elif account.is_super_admin and body.org_unit_id is not None:
+        if await db.get(OrgUnit, body.org_unit_id) is None:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Unknown org unit")
+        target_unit_id = body.org_unit_id
+    else:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY, "Choose a branch or department to post as"
+        )
     if await db.get(Category, body.category_id) is None:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Unknown category")
 
     post = Post(
-        org_unit_id=account.org_unit_id,
+        org_unit_id=target_unit_id,
         category_id=body.category_id,
         title=body.title,
         body=body.body,
@@ -117,7 +128,7 @@ async def create_post(
     db.add(post)
     await db.flush()
     if post.status == "published":
-        bg.add_task(_fan_out_notifications, str(post.id), account.org_unit_id, post.title)
+        bg.add_task(_fan_out_notifications, str(post.id), target_unit_id, post.title)
     return post
 
 
