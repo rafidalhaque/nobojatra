@@ -1,0 +1,12 @@
+* text=auto eol=lf
+
+# Scripts and configs that must stay LF even on Windows checkouts
+*.sh    text eol=lf
+*.conf  text eol=lf
+Dockerfile text eol=lf
+
+# Binary-ish assets Git should not touch
+*.woff2 binary
+*.png   binary
+*.jpg   binary
+*.ico   binary

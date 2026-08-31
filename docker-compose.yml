@@ -15,7 +15,8 @@ services:
       NTFY_AUTH_DEFAULT_ACCESS: "deny-all"
     volumes:
       - ntfydata:/var/lib/ntfy
-    ports: ["8080:80"]
+    expose:
+      - 80
 
   migrate:
     build:
@@ -36,7 +37,7 @@ services:
       NTFY_URL: http://ntfy:80
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    ports: ["8000:8000"]
+    ports: ["9341:8000"]
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -47,7 +48,7 @@ services:
       network: host
       args:
         VITE_API_BASE: /api
-    ports: ["80:80"]
+    ports: ["9342:80"]
     depends_on:
       api:
         condition: service_started
