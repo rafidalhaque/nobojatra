@@ -23,6 +23,7 @@
   let iType = $state('dept');
   let iArea = $state('');
   let iFile = $state(null);
+  let iDragOver = $state(false);
   let importing = $state(false);
   let importOk = $state('');
   let rowErrors = $state([]);
@@ -194,7 +195,20 @@
         </select>
       </label>
       <label class="wide">{$t('admin.units.file')}
-        <input type="file" accept=".csv,text/csv" onchange={(e) => (iFile = e.currentTarget.files[0] ?? null)} />
+        <label
+          class="drop"
+          class:over={iDragOver}
+          ondragover={(e) => (e.preventDefault(), (iDragOver = true))}
+          ondragleave={() => (iDragOver = false)}
+          ondrop={(e) => (e.preventDefault(), (iDragOver = false), (iFile = e.dataTransfer?.files[0] ?? iFile))}
+        >
+          <input
+            type="file"
+            accept=".csv,text/csv"
+            onchange={(e) => (iFile = e.currentTarget.files[0] ?? null)}
+          />
+          <span>{iFile ? iFile.name : $t('editor.dropHint')}</span>
+        </label>
       </label>
       <div class="act">
         <button class="btn" disabled={importing || !iFile}>
@@ -322,6 +336,23 @@
     align-items: center;
     gap: 1rem;
     margin-top: 0.25rem;
+  }
+  .drop {
+    display: block;
+    border: 1.5px dashed var(--rule);
+    border-radius: var(--radius);
+    padding: 0.75rem;
+    text-align: center;
+    cursor: pointer;
+  }
+  .drop:hover,
+  .drop.over {
+    border-color: var(--thread);
+    color: var(--thread-strong);
+    background: color-mix(in srgb, var(--thread) 6%, transparent);
+  }
+  .drop input {
+    display: none;
   }
   .hint {
     color: var(--ink-muted);
