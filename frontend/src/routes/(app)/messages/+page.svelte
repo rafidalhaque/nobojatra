@@ -277,6 +277,7 @@
     margin: 0;
     padding: 1rem;
     display: grid;
+    align-content: start;
     gap: 0.6rem;
     flex: 1;
     overflow-y: auto;
