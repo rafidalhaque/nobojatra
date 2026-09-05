@@ -162,9 +162,6 @@
   .d input {
     min-width: 9rem;
   }
-  .d input::-webkit-calendar-picker-indicator {
-    cursor: pointer;
-  }
   .board {
     list-style: none;
     margin: 0;
