@@ -159,6 +159,12 @@
     font-size: var(--step--1);
     color: var(--ink-muted);
   }
+  .d input {
+    min-width: 9rem;
+  }
+  .d input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+  }
   .board {
     list-style: none;
     margin: 0;
@@ -180,7 +186,11 @@
     min-width: 0;
   }
   .cat {
-    color: var(--seal);
+    display: inline-flex;
+    padding: 0.15em 0.6em;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--thread) 15%, transparent);
+    color: var(--thread-strong);
   }
   .draft {
     margin-left: 0.75rem;

@@ -85,6 +85,11 @@
 
 html { -webkit-text-size-adjust: 100%; }
 
+/* lets native controls (date picker icon/popup, scrollbars) render in the
+   active theme instead of always following the OS scheme */
+:root { color-scheme: light; }
+:root[data-theme='dark'] { color-scheme: dark; }
+
 body {
   margin: 0;
   background: var(--paper);

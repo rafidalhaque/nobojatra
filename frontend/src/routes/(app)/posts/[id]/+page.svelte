@@ -115,7 +115,11 @@
     letter-spacing: 0.03em;
   }
   .cat {
-    color: var(--seal);
+    display: inline-flex;
+    padding: 0.15em 0.6em;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--thread) 15%, transparent);
+    color: var(--thread-strong);
   }
   .draft {
     margin-left: 0.75rem;
