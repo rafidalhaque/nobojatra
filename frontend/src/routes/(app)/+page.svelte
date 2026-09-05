@@ -197,7 +197,7 @@
     color: var(--ink-muted);
     border: 1px solid var(--rule);
     padding: 0 0.4em;
-    border-radius: 2px;
+    border-radius: 999px;
   }
   .notice h2 {
     font-size: var(--step-1);

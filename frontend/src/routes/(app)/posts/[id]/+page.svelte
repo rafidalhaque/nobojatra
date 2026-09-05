@@ -125,7 +125,7 @@
     margin-left: 0.75rem;
     border: 1px solid var(--rule);
     padding: 0 0.4em;
-    border-radius: 2px;
+    border-radius: 999px;
     color: var(--ink-muted);
   }
   h1 {

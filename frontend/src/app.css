@@ -60,7 +60,7 @@
   --step-3: 2.5rem;
 
   --space: 1rem;
-  --radius: 3px;          /* near-square: paper, not app-chrome */
+  --radius: 10px;         /* soft, not sharp paper-chrome */
   --shadow: 0 1px 0 var(--rule), 0 8px 24px -18px rgba(20, 53, 42, 0.5);
   --measure: 68ch;
 }
@@ -139,7 +139,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   gap: 1px;
   padding: 6px 10px;
   border: 1.5px solid var(--seal);
-  border-radius: 2px;
+  border-radius: 6px;
   color: var(--seal);
   background: color-mix(in srgb, var(--seal) 7%, transparent);
   transform: rotate(-1.4deg);
@@ -200,7 +200,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   border-radius: var(--radius);
   overflow-x: auto;
 }
-.prose code { background: color-mix(in srgb, var(--ink) 8%, transparent); padding: 0.1em 0.35em; border-radius: 2px; }
+.prose code { background: color-mix(in srgb, var(--ink) 8%, transparent); padding: 0.1em 0.35em; border-radius: 4px; }
 .prose pre code { background: none; padding: 0; }
 
 .visually-hidden {
