@@ -29,6 +29,7 @@
   "nav.messages": "বার্তা",
   "nav.notifications": "বিজ্ঞপ্তি",
   "nav.directory": "তালিকা",
+  "nav.profile": "আমার প্রোফাইল",
   "nav.admin": "অ্যাডমিন",
   "nav.signout": "লগ আউট",
 
@@ -106,6 +107,16 @@
   "profile.message": "বার্তা পাঠান",
   "profile.posts": "নোটিশ",
   "profile.noPosts": "এই ইউনিট থেকে এখনো কোনো নোটিশ নেই।",
+  "profile.myProfile": "আমার প্রোফাইল",
+
+  "password.change": "পাসওয়ার্ড পরিবর্তন",
+  "password.current": "বর্তমান পাসওয়ার্ড",
+  "password.new": "নতুন পাসওয়ার্ড",
+  "password.confirm": "নতুন পাসওয়ার্ড নিশ্চিত করুন",
+  "password.mismatch": "নতুন পাসওয়ার্ড দুটি মিলছে না।",
+  "password.tooShort": "নতুন পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।",
+  "password.incorrect": "বর্তমান পাসওয়ার্ড ভুল।",
+  "password.success": "পাসওয়ার্ড পরিবর্তিত হয়েছে।",
 
   "admin.heading": "অ্যাডমিন",
   "admin.permissions": "অনুমতি",

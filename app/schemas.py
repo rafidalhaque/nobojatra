@@ -28,6 +28,11 @@ class PreferencesIn(BaseModel):
     lang_pref: Literal["en", "bn"] | None = None
 
 
+class PasswordChangeIn(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=8, max_length=200)
+
+
 # ---- areas ----
 class AreaIn(BaseModel):
     name: str = Field(min_length=1, max_length=200)

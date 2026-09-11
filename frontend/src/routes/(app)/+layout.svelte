@@ -41,6 +41,7 @@
       : []),
     { href: '/notifications', key: 'nav.notifications', glyph: '❈' },
     { href: '/directory', key: 'nav.directory', glyph: '☰' },
+    { href: '/profile', key: 'nav.profile', glyph: '☺' },
     ...($session?.is_super_admin ? [{ href: '/admin', key: 'nav.admin', glyph: '⚙' }] : [])
   ]);
 

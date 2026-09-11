@@ -29,6 +29,7 @@
   "nav.messages": "Messages",
   "nav.notifications": "Notifications",
   "nav.directory": "Directory",
+  "nav.profile": "My profile",
   "nav.admin": "Admin",
   "nav.signout": "Sign out",
 
@@ -106,6 +107,16 @@
   "profile.message": "Message",
   "profile.posts": "Posts",
   "profile.noPosts": "No posts from this unit yet.",
+  "profile.myProfile": "My profile",
+
+  "password.change": "Change password",
+  "password.current": "Current password",
+  "password.new": "New password",
+  "password.confirm": "Confirm new password",
+  "password.mismatch": "New passwords don't match.",
+  "password.tooShort": "New password must be at least 8 characters.",
+  "password.incorrect": "Current password is incorrect.",
+  "password.success": "Password changed.",
 
   "admin.heading": "Admin",
   "admin.permissions": "Permissions",

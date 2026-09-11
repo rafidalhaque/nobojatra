@@ -3,9 +3,9 @@ from sqlalchemy import select
 
 from app.config import get_settings
 from app.deps import AccountDep, DbDep
-from app.models import Account
-from app.schemas import LoginIn, MeOut, PreferencesIn
-from app.security import make_token, verify_password
+from app.models import Account, OrgUnit
+from app.schemas import LoginIn, MeOut, OrgUnitOut, PasswordChangeIn, PreferencesIn
+from app.security import hash_password, make_token, verify_password
 
 router = APIRouter(tags=["auth"])
 settings = get_settings()
@@ -52,3 +52,23 @@ async def update_preferences(body: PreferencesIn, account: AccountDep, db: DbDep
         account.lang_pref = body.lang_pref
     await db.flush()
     return account
+
+
+@router.get("/me/profile", response_model=OrgUnitOut)
+async def my_profile(account: AccountDep, db: DbDep):
+    """Own org-unit profile — always viewable regardless of `profile.view`,
+    which only gates looking up *other* units."""
+    if account.org_unit_id is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+    unit = await db.get(OrgUnit, account.org_unit_id)
+    if unit is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+    return unit
+
+
+@router.patch("/me/password", status_code=status.HTTP_204_NO_CONTENT)
+async def change_password(body: PasswordChangeIn, account: AccountDep, db: DbDep):
+    if not verify_password(body.current_password, account.password_hash):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Current password is incorrect")
+    account.password_hash = hash_password(body.new_password)
+    await db.flush()
