@@ -98,6 +98,15 @@
   "directory.area": "এলাকা",
   "directory.code": "কোড",
 
+  "profile.backToDirectory": "ডিরেক্টরিতে ফিরুন",
+  "profile.notFound": "এই প্রোফাইল পাওয়া যায়নি।",
+  "profile.noPermission": "প্রোফাইল দেখার অনুমতি আপনার নেই।",
+  "profile.code": "কোড",
+  "profile.area": "এলাকা",
+  "profile.message": "বার্তা পাঠান",
+  "profile.posts": "নোটিশ",
+  "profile.noPosts": "এই ইউনিট থেকে এখনো কোনো নোটিশ নেই।",
+
   "admin.heading": "অ্যাডমিন",
   "admin.permissions": "অনুমতি",
   "admin.deptDefault": "বিভাগের ডিফল্ট",

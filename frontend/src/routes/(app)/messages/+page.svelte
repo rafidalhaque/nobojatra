@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import { page } from '$app/stores';
   import { api } from '$lib/api.js';
   import { t, lang } from '$lib/i18n';
   import { session } from '$lib/stores.js';
@@ -38,6 +39,8 @@
       const us = await api('/org-units');
       units = new Map(us.map((u) => [u.id, u]));
       if (actingUnit) conversations = await api('/messages/conversations', { query: asQuery() });
+      const to = $page.url.searchParams.get('to');
+      if (to && to !== actingUnit) await open(to);
     } catch (e) {
       error = e.detail ?? 'error';
     } finally {

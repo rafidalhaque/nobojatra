@@ -98,6 +98,15 @@
   "directory.area": "Area",
   "directory.code": "Code",
 
+  "profile.backToDirectory": "Back to directory",
+  "profile.notFound": "That profile isn't available.",
+  "profile.noPermission": "You don't have permission to view profiles.",
+  "profile.code": "Code",
+  "profile.area": "Area",
+  "profile.message": "Message",
+  "profile.posts": "Posts",
+  "profile.noPosts": "No posts from this unit yet.",
+
   "admin.heading": "Admin",
   "admin.permissions": "Permissions",
   "admin.deptDefault": "Department default",

@@ -1,11 +1,11 @@
 import csv
 import io
 
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 
-from app.deps import AccountDep, DbDep, SuperAdminDep
+from app.deps import AccountDep, DbDep, SuperAdminDep, require_permission
 from app.models import Account, Area, OrgUnit
 from app.schemas import ImportResult, OrgUnitIn, OrgUnitOut, OrgUnitPatch
 from app.security import hash_password
@@ -27,6 +27,18 @@ async def list_units(
 
 @router.get("/{unit_id}", response_model=OrgUnitOut)
 async def get_unit(unit_id: str, _: AccountDep, db: DbDep):
+    unit = await db.get(OrgUnit, unit_id)
+    if unit is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+    return unit
+
+
+@router.get("/{unit_id}/profile", response_model=OrgUnitOut)
+async def get_unit_profile(
+    unit_id: str,
+    db: DbDep,
+    _: Account = Depends(require_permission("profile.view")),
+):
     unit = await db.get(OrgUnit, unit_id)
     if unit is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND)

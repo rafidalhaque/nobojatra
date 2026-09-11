@@ -52,7 +52,7 @@
           {#each list as u (u.id)}
             <tr>
               <td class="code">{u.code}</td>
-              <td>{u.name}</td>
+              <td><a href={`/directory/${u.id}`}>{u.name}</a></td>
               <td>{areas.get(u.area_id) ?? '—'}</td>
             </tr>
           {:else}
