@@ -355,7 +355,7 @@
     font-family: var(--font-bangla);
     font-weight: 700;
     font-size: 16px;
-    color: var(--board);
+    color: var(--ink);
   }
   .brand-text .en {
     font-weight: 600;
@@ -411,7 +411,7 @@
   }
   .nav-item.active {
     background: var(--nav-active-bg);
-    color: var(--board);
+    color: var(--thread-strong);
     font-weight: 600;
   }
 
