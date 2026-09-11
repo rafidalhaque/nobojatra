@@ -16,6 +16,22 @@
   let threadLoading = $state(false);
   let draft = $state('');
   let sending = $state(false);
+  let files = $state([]);
+  let dragOver = $state(false);
+
+  const apiBase = import.meta.env.VITE_API_BASE ?? '/api';
+  const INLINE_IMG = ['image/png', 'image/jpeg', 'image/gif', 'image/webp'];
+  const isImage = (a) => INLINE_IMG.includes((a.content_type ?? '').toLowerCase());
+  const fileKey = (f) => `${f.name}:${f.size}:${f.lastModified}`;
+
+  function addFiles(list) {
+    const seen = new Set(files.map(fileKey));
+    const next = [...(list ?? [])].filter((f) => !seen.has(fileKey(f)));
+    if (next.length) files = [...files, ...next];
+  }
+  function removeFile(i) {
+    files = files.filter((_, n) => n !== i);
+  }
 
   const isSuper = $derived(Boolean($session?.is_super_admin));
   // Branch/dept accounts act as their own unit; a Super Admin picks a dept to act as.
@@ -79,19 +95,18 @@
   }
 
   async function send() {
-    if (!draft.trim() || !openWith || sending) return;
+    if ((!draft.trim() && !files.length) || !openWith || sending) return;
     sending = true;
     try {
-      const m = await api('/messages', {
-        method: 'POST',
-        body: {
-          recipient_org_unit_id: openWith,
-          body: draft,
-          ...(isSuper ? { sender_org_unit_id: actingUnit } : {})
-        }
-      });
+      const fd = new FormData();
+      fd.append('recipient_org_unit_id', openWith);
+      fd.append('body', draft);
+      if (isSuper) fd.append('sender_org_unit_id', actingUnit);
+      for (const f of files) fd.append('files', f);
+      const m = await api('/messages', { method: 'POST', body: fd });
       thread = [...thread, m];
       draft = '';
+      files = [];
     } catch (e) {
       error = e.detail ?? 'error';
     } finally {
@@ -161,16 +176,61 @@
         <ol class="bubbles" lang={$lang}>
           {#each thread as m (m.id)}
             <li class:mine={m.sender_org_unit_id === actingUnit}>
-              <p>{m.body}</p>
+              {#if m.body}<p>{m.body}</p>{/if}
+              {#if m.attachments?.length}
+                <ul class="atts">
+                  {#each m.attachments as a (a.id)}
+                    <li>
+                      {#if isImage(a)}
+                        <a href={`${apiBase}/messages/attachments/${a.id}`} target="_blank" rel="noopener">
+                          <img src={`${apiBase}/messages/attachments/${a.id}`} alt={a.original_filename} loading="lazy" />
+                        </a>
+                      {:else}
+                        <a href={`${apiBase}/messages/attachments/${a.id}`} target="_blank" rel="noopener">{a.original_filename}</a>
+                      {/if}
+                    </li>
+                  {/each}
+                </ul>
+              {/if}
               <time>{fmtDate(m.created_at, true)}</time>
             </li>
           {/each}
         </ol>
-        <form class="compose" onsubmit={(e) => (e.preventDefault(), send())}>
-          <textarea rows="2" bind:value={draft} placeholder={$t('messages.write')} lang={$lang}></textarea>
-          <button class="btn" disabled={sending || !draft.trim()}>
-            {sending ? $t('messages.sending') : $t('messages.send')}
-          </button>
+        <form
+          class="compose"
+          class:over={dragOver}
+          onsubmit={(e) => (e.preventDefault(), send())}
+          ondragover={(e) => (e.preventDefault(), (dragOver = true))}
+          ondragleave={() => (dragOver = false)}
+          ondrop={(e) => (e.preventDefault(), (dragOver = false), addFiles(e.dataTransfer?.files))}
+        >
+          {#if files.length}
+            <ul class="pending">
+              {#each files as f, i (fileKey(f))}
+                <li>
+                  <span class="fn">{f.name}</span>
+                  <button type="button" class="rm" onclick={() => removeFile(i)} aria-label={$t('messages.remove')}>×</button>
+                </li>
+              {/each}
+            </ul>
+          {/if}
+          <div class="composerow">
+            <label class="clip" title={$t('messages.attach')}>
+              {$t('messages.attach')}
+              <input
+                type="file"
+                multiple
+                onchange={(e) => {
+                  addFiles(e.currentTarget.files);
+                  e.currentTarget.value = '';
+                }}
+              />
+            </label>
+            <textarea rows="2" bind:value={draft} placeholder={$t('messages.write')} lang={$lang}></textarea>
+            <button class="btn" disabled={sending || (!draft.trim() && !files.length)}>
+              {sending ? $t('messages.sending') : $t('messages.send')}
+            </button>
+          </div>
         </form>
       {/if}
     </section>
@@ -305,11 +365,48 @@
     color: var(--ink-muted);
     letter-spacing: 0.03em;
   }
+  .atts {
+    list-style: none;
+    margin: 0.35rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.35rem;
+  }
+  .atts img {
+    max-width: 12rem;
+    border-radius: var(--radius);
+    display: block;
+  }
   .compose {
     display: flex;
-    gap: 0.5rem;
+    flex-direction: column;
+    gap: 0.4rem;
     padding: 0.75rem;
     border-top: 1px solid var(--rule);
+  }
+  .compose.over {
+    background: color-mix(in srgb, var(--thread) 6%, transparent);
+  }
+  .composerow {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end;
+  }
+  .clip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 0.6em;
+    height: 2.3em;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--paper);
+    cursor: pointer;
+    font-size: var(--step--1);
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+  .clip input {
+    display: none;
   }
   .compose textarea {
     flex: 1;
@@ -319,6 +416,41 @@
     border: 1px solid var(--rule);
     border-radius: var(--radius);
     background: var(--paper);
+  }
+  .pending {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 2px;
+  }
+  .pending li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.55rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--paper);
+    font-size: var(--step--1);
+  }
+  .pending .fn {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pending .rm {
+    border: 0;
+    background: none;
+    cursor: pointer;
+    color: var(--ink-muted);
+    font-size: 1.15rem;
+    line-height: 1;
+    padding: 0 0.25rem;
+  }
+  .pending .rm:hover {
+    color: var(--danger);
   }
   .muted {
     color: var(--ink-muted);

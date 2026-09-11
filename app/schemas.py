@@ -156,12 +156,12 @@ class CommentOut(BaseModel):
 
 
 # ---- messages ----
-class MessageIn(BaseModel):
-    recipient_org_unit_id: uuid.UUID
-    body: str = Field(min_length=1)
-    # Super Admin only: the department to send as. Ignored for branch/dept
-    # accounts (they always send as their own unit).
-    sender_org_unit_id: uuid.UUID | None = None
+class MessageAttachmentOut(BaseModel):
+    model_config = ORM
+    id: uuid.UUID
+    original_filename: str
+    content_type: str | None
+    size_bytes: int
 
 
 class MessageOut(BaseModel):
@@ -172,6 +172,7 @@ class MessageOut(BaseModel):
     body: str
     created_at: dt.datetime
     read_at: dt.datetime | None
+    attachments: list[MessageAttachmentOut]
 
 
 class ConversationOut(BaseModel):

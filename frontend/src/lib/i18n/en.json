@@ -87,6 +87,9 @@
   "messages.noUnit": "Messaging is between branches and departments. Your account is not attached to one, so there is nothing to show here.",
   "messages.messageAs": "Message as",
   "messages.pickDept": "Pick a department above to see and send its messages.",
+  "messages.attach": "Attach",
+  "messages.filesSelected": "{n} file(s) selected",
+  "messages.remove": "Remove",
 
   "notifications.heading": "Notifications",
   "notifications.markAll": "Mark all read",

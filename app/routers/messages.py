@@ -1,14 +1,21 @@
 import datetime as dt
 import uuid
+from urllib.parse import quote
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy import case, func, or_, select
 
+from app import storage
 from app.deps import AccountDep, DbDep, require_permission
-from app.models import Account, Message, OrgUnit
-from app.schemas import ConversationOut, MessageIn, MessageOut
+from app.models import Account, Message, MessageAttachment, OrgUnit
+from app.schemas import ConversationOut, MessageOut
 
 router = APIRouter(prefix="/messages", tags=["messages"])
+
+# Types safe to render in the browser; everything else forced to download as an
+# opaque blob (mirrors app/routers/posts.py get_media — same reasoning).
+_INLINE_OK = ("image/png", "image/jpeg", "image/gif", "image/webp", "application/pdf")
 
 
 async def _acting_unit(account: Account, db, as_unit: str | None) -> uuid.UUID:
@@ -84,21 +91,39 @@ async def thread(
 
 @router.post("", response_model=MessageOut, status_code=status.HTTP_201_CREATED)
 async def send_message(
-    body: MessageIn,
+    recipient_org_unit_id: uuid.UUID = Form(...),
+    body: str = Form(default=""),
+    # Super Admin only: the department to send as. Ignored for branch/dept
+    # accounts (they always send as their own unit).
+    sender_org_unit_id: uuid.UUID | None = Form(default=None),
+    files: list[UploadFile] = File(default=[]),
     account: Account = Depends(require_permission("message.send")),
     db: DbDep = None,
 ):
-    me = await _acting_unit(account, db, body.sender_org_unit_id)
-    if body.recipient_org_unit_id == me:
+    body = body.strip()
+    files = [f for f in files if f.filename]
+    if not body and not files:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Message needs text or an attachment")
+    me = await _acting_unit(account, db, sender_org_unit_id)
+    if recipient_org_unit_id == me:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Cannot message yourself")
-    if await db.get(OrgUnit, body.recipient_org_unit_id) is None:
+    if await db.get(OrgUnit, recipient_org_unit_id) is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Unknown recipient")
     msg = Message(
         sender_org_unit_id=me,
-        recipient_org_unit_id=body.recipient_org_unit_id,
+        recipient_org_unit_id=recipient_org_unit_id,
         sender_account_id=account.id,  # audit only, never serialized
-        body=body.body,
+        body=body,
     )
+    msg.attachments = [
+        MessageAttachment(
+            s3_key=storage.put(f.file, f.content_type, prefix="messages"),
+            original_filename=f.filename or "file",
+            content_type=f.content_type,
+            size_bytes=f.size or 0,
+        )
+        for f in files
+    ]
     db.add(msg)
     await db.flush()
     return msg
@@ -118,3 +143,30 @@ async def mark_read(
     if msg.read_at is None:
         msg.read_at = dt.datetime.now(dt.UTC)
     await db.flush()
+
+
+@router.get("/attachments/{attachment_id}")
+async def get_attachment(attachment_id: str, account: AccountDep, db: DbDep):
+    """Auth-gated proxy, no public S3 URLs (spec 11.2). Visibility rides on the
+    parent message's RLS, same as posts' get_media."""
+    att = await db.get(MessageAttachment, attachment_id)
+    if att is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+    if await db.get(Message, att.message_id) is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+    chunks, content_type, length = storage.open_stream(att.s3_key)
+
+    ct = (content_type or "").split(";")[0].strip().lower()
+    inline = ct in _INLINE_OK
+    served_type = ct if inline else "application/octet-stream"
+    filename = quote(att.original_filename or "file", safe="")
+
+    headers = {
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Security-Policy": "default-src 'none'; sandbox; base-uri 'none'",
+        "Content-Disposition": f"{'inline' if inline else 'attachment'}; filename*=UTF-8''{filename}",
+    }
+    if length is not None:
+        headers["Content-Length"] = str(length)
+    return StreamingResponse(chunks, media_type=served_type, headers=headers)

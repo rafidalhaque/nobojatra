@@ -36,8 +36,8 @@ def ensure_bucket() -> None:
         _client.create_bucket(Bucket=settings.s3_bucket)
 
 
-def put(fileobj: BinaryIO, content_type: str | None) -> str:
-    key = f"posts/{uuid.uuid4().hex}"
+def put(fileobj: BinaryIO, content_type: str | None, prefix: str = "posts") -> str:
+    key = f"{prefix}/{uuid.uuid4().hex}"
     extra = {"ServerSideEncryption": settings.s3_sse}
     if content_type:
         extra["ContentType"] = content_type

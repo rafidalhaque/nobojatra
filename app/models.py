@@ -198,6 +198,23 @@ class Message(Base):
     body: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[dt.datetime] = _created_at()
     read_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    attachments: Mapped[list["MessageAttachment"]] = relationship(
+        back_populates="message", cascade="all, delete-orphan", lazy="selectin", order_by="MessageAttachment.created_at"
+    )
+
+
+class MessageAttachment(Base):
+    __tablename__ = "message_attachments"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    message_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("messages.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    s3_key: Mapped[str] = mapped_column(Text, nullable=False)
+    original_filename: Mapped[str] = mapped_column(Text, nullable=False)
+    content_type: Mapped[str | None] = mapped_column(Text, nullable=True)
+    size_bytes: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    created_at: Mapped[dt.datetime] = _created_at()
+    message: Mapped[Message] = relationship(back_populates="attachments")
 
 
 class Notification(Base):

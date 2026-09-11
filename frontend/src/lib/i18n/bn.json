@@ -87,6 +87,9 @@
   "messages.noUnit": "মেসেজ চালাচালি হয় শাখা ও দপ্তরের মধ্যে। আপনার অ্যাকাউন্ট কোনো শাখা বা দপ্তরের সঙ্গে যুক্ত নয়, তাই এখানে দেখানোর কিছু নেই।",
   "messages.messageAs": "যে দপ্তর হিসেবে",
   "messages.pickDept": "উপরে একটি দপ্তর বেছে নিন, তার মেসেজ দেখতে ও পাঠাতে।",
+  "messages.attach": "সংযুক্ত করুন",
+  "messages.filesSelected": "{n}টি ফাইল নির্বাচিত",
+  "messages.remove": "সরান",
 
   "notifications.heading": "বিজ্ঞপ্তি",
   "notifications.markAll": "সব পঠিত চিহ্নিত করুন",
