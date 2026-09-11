@@ -136,6 +136,20 @@ class PostPage(BaseModel):
     size: int
 
 
+# ---- comments ----
+class CommentIn(BaseModel):
+    body: str = Field(min_length=1, max_length=4000)
+
+
+class CommentOut(BaseModel):
+    model_config = ORM
+    id: uuid.UUID
+    post_id: uuid.UUID
+    org_unit_id: uuid.UUID
+    body: str
+    created_at: dt.datetime
+
+
 # ---- messages ----
 class MessageIn(BaseModel):
     recipient_org_unit_id: uuid.UUID

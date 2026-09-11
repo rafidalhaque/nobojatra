@@ -9,6 +9,7 @@ from fastapi import HTTPException
 
 from app.ntfy import topic_for
 from app.permissions import CATALOG, PROFILE_DEFAULTS
+from app.routers.comments import _owns as _owns_comment
 from app.routers.messages import _acting_unit
 from app.routers.org_units import _col
 
@@ -89,6 +90,21 @@ def test_acting_unit_super_admin_rejects_non_dept():
 def test_acting_unit_super_admin_accepts_dept():
     dept = _Unit("dept")
     assert _acts(_Acct(is_super_admin=True), _Db(dept), str(uuid.uuid4())) == dept.id
+
+
+class _Comment:
+    def __init__(self, org_unit_id):
+        self.org_unit_id = org_unit_id
+
+
+def test_owns_comment_matches_own_unit():
+    ou = uuid.uuid4()
+    assert _owns_comment(_Acct(org_unit_id=ou), _Comment(ou)) is True
+    assert _owns_comment(_Acct(org_unit_id=uuid.uuid4()), _Comment(ou)) is False
+
+
+def test_owns_comment_super_admin_bypasses():
+    assert _owns_comment(_Acct(is_super_admin=True), _Comment(uuid.uuid4())) is True
 
 
 if __name__ == "__main__":

@@ -49,6 +49,14 @@
   "post.deleteConfirm": "Delete this notice permanently? This cannot be undone.",
   "post.deleting": "Deleting…",
 
+  "comments.heading": "Comments",
+  "comments.empty": "No comments yet.",
+  "comments.placeholder": "Write a comment…",
+  "comments.send": "Comment",
+  "comments.sending": "Posting…",
+  "comments.needsUnit": "Only a branch or department account can comment.",
+  "comments.deleteConfirm": "Delete this comment?",
+
   "editor.newHeading": "New notice",
   "editor.editHeading": "Edit notice",
   "editor.title": "Title",

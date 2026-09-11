@@ -169,6 +169,19 @@ class PostMedia(Base):
     post: Mapped[Post] = relationship(back_populates="media")
 
 
+class Comment(Base):
+    __tablename__ = "comments"
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    post_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("posts.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    org_unit_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("org_units.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[dt.datetime] = _created_at()
+
+
 class Message(Base):
     __tablename__ = "messages"
     id: Mapped[uuid.UUID] = _uuid_pk()

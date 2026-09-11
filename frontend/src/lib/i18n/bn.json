@@ -49,6 +49,14 @@
   "post.deleteConfirm": "এই নোটিশ স্থায়ীভাবে মুছে ফেলবেন? এটি আর ফেরানো যাবে না।",
   "post.deleting": "মুছে ফেলা হচ্ছে…",
 
+  "comments.heading": "মন্তব্য",
+  "comments.empty": "এখনো কোনো মন্তব্য নেই।",
+  "comments.placeholder": "মন্তব্য লিখুন…",
+  "comments.send": "মন্তব্য করুন",
+  "comments.sending": "পাঠানো হচ্ছে…",
+  "comments.needsUnit": "শুধু শাখা বা বিভাগ অ্যাকাউন্ট মন্তব্য করতে পারবে।",
+  "comments.deleteConfirm": "এই মন্তব্য মুছে ফেলবেন?",
+
   "editor.newHeading": "নতুন নোটিশ",
   "editor.editHeading": "নোটিশ সম্পাদনা",
   "editor.title": "শিরোনাম",
