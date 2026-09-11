@@ -5,33 +5,8 @@
    No monospace anywhere (spec 10) — data/labels use tracking, never a mono face.
    ============================================================================ */
 
-/* Self-hosted only (spec 10). Drop the .woff2 files into static/fonts/ —
-   see static/fonts/README.md. Fallbacks keep the UI usable until they load. */
-@font-face {
-  font-family: 'Carlito';
-  src: url('/fonts/carlito-regular.woff2') format('woff2');
-  font-weight: 400; font-style: normal; font-display: swap;
-}
-@font-face {
-  font-family: 'Carlito';
-  src: url('/fonts/carlito-bold.woff2') format('woff2');
-  font-weight: 700; font-style: normal; font-display: swap;
-}
-@font-face {
-  font-family: 'Carlito';
-  src: url('/fonts/carlito-italic.woff2') format('woff2');
-  font-weight: 400; font-style: italic; font-display: swap;
-}
-@font-face {
-  font-family: 'Tiro Bangla';
-  src: url('/fonts/tirobangla-regular.woff2') format('woff2');
-  font-weight: 400; font-style: normal; font-display: swap;
-}
-@font-face {
-  font-family: 'Tiro Bangla';
-  src: url('/fonts/tirobangla-italic.woff2') format('woff2');
-  font-weight: 400; font-style: italic; font-display: swap;
-}
+/* Carlito + Tiro Bangla load from Google Fonts (see the <link> in app.html)
+   instead of self-hosting. Fallbacks below keep the UI usable if that's slow/blocked. */
 
 :root {
   --paper: #eef0ec;
