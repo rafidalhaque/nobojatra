@@ -184,7 +184,7 @@
         </button>
       </div>
 
-      <nav aria-label="sections">
+      <nav class="sidebar-nav" aria-label="sections">
         {#each nav as item (item.href)}
           <a
             href={item.href}
@@ -380,7 +380,7 @@
     background: var(--paper);
   }
 
-  nav[aria-label='sections'] {
+  .sidebar-nav {
     display: flex;
     flex-direction: column;
     gap: 2px;
