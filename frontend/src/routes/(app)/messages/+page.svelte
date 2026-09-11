@@ -255,7 +255,7 @@
     padding: 0.4em 0.6em;
     border: 1px solid var(--rule);
     border-radius: var(--radius);
-    background: var(--paper);
+    background-color: var(--paper);
   }
   .split {
     display: grid;
@@ -280,7 +280,7 @@
     padding: 0.4em;
     border: 1px solid var(--rule);
     border-radius: var(--radius);
-    background: var(--paper);
+    background-color: var(--paper);
   }
   .convs {
     list-style: none;

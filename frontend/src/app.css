@@ -182,7 +182,11 @@ input[type='datetime-local']::-webkit-calendar-picker-indicator {
   width: 100%;
   min-height: 2.6rem;
   padding: 0.6em 0.75em;
-  background: var(--paper);
+  /* background-color, not the `background` shorthand — a shorthand here would
+     reset select's custom chevron image/repeat/position/size back to their
+     defaults (tiling it across the whole box) since this rule outranks the
+     base `select` rule's specificity */
+  background-color: var(--paper);
   color: var(--ink);
   border: 1px solid var(--rule);
   border-radius: var(--radius);

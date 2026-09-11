@@ -208,7 +208,7 @@
   .unitsel {
     margin-top: 1rem;
     padding: 0.45em 0.6em;
-    background: var(--paper);
+    background-color: var(--paper);
     border: 1px solid var(--rule);
     border-radius: var(--radius);
     color: var(--ink);
@@ -216,7 +216,7 @@
   }
   .ct select {
     padding: 0.3em 0.4em;
-    background: var(--paper);
+    background-color: var(--paper);
     border: 1px solid var(--rule);
     border-radius: var(--radius);
     color: var(--ink);

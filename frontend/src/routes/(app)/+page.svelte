@@ -145,7 +145,7 @@
   .filters input,
   .filters select {
     padding: 0.45em 0.6em;
-    background: var(--paper);
+    background-color: var(--paper);
     border: 1px solid var(--rule);
     border-radius: var(--radius);
   }

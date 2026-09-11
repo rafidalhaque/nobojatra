@@ -326,7 +326,7 @@
   .grid input,
   .grid select {
     padding: 0.5em 0.65em;
-    background: var(--paper);
+    background-color: var(--paper);
     border: 1px solid var(--rule);
     border-radius: var(--radius);
     color: var(--ink);
@@ -407,7 +407,7 @@
   .ei {
     width: 100%;
     padding: 0.35em 0.5em;
-    background: var(--paper);
+    background-color: var(--paper);
     border: 1px solid var(--rule);
     border-radius: var(--radius);
     color: var(--ink);
