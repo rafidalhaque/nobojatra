@@ -63,6 +63,10 @@
   --radius: 10px;         /* soft, not sharp paper-chrome */
   --shadow: 0 1px 0 var(--rule), 0 8px 24px -18px rgba(20, 53, 42, 0.5);
   --measure: 68ch;
+
+  /* active-nav tint: derived from existing tokens, so it stays correct in
+     dark mode automatically without a separate override */
+  --nav-active-bg: color-mix(in srgb, var(--thread) 14%, var(--paper-raised));
 }
 
 :root[data-theme='dark'] {

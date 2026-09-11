@@ -32,6 +32,10 @@
   "nav.profile": "My profile",
   "nav.admin": "Admin",
   "nav.signout": "Sign out",
+  "nav.superAdmin": "Super Admin",
+
+  "sidebar.collapse": "Collapse sidebar",
+  "sidebar.expand": "Expand sidebar",
 
   "feed.heading": "Notices",
   "feed.new": "New notice",

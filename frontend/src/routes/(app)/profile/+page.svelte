@@ -75,7 +75,7 @@
   </section>
 {/if}
 
-<section class="paper-card pw">
+<section id="password" class="paper-card pw">
   <h2>{$t('password.change')}</h2>
   <form onsubmit={changePassword} novalidate>
     <div class="field">

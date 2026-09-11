@@ -32,6 +32,10 @@
   "nav.profile": "আমার প্রোফাইল",
   "nav.admin": "অ্যাডমিন",
   "nav.signout": "লগ আউট",
+  "nav.superAdmin": "সুপার অ্যাডমিন",
+
+  "sidebar.collapse": "সাইডবার সংকুচিত করুন",
+  "sidebar.expand": "সাইডবার প্রসারিত করুন",
 
   "feed.heading": "নোটিশ",
   "feed.new": "নতুন নোটিশ",
