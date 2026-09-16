@@ -1,6 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
 
+import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -21,6 +22,13 @@ from app.routers import (
 
 settings = get_settings()
 logging.basicConfig(level=settings.log_level.upper())
+
+if settings.sentry_dsn:
+    sentry_sdk.init(
+        dsn=settings.sentry_dsn,
+        environment=settings.env,
+        traces_sample_rate=settings.sentry_traces_sample_rate,
+    )
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):

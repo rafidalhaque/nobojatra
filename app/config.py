@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     ntfy_topic_prefix: str = "portal-dev"
     ntfy_token: str = ""
 
+    sentry_dsn: str = ""
+    sentry_traces_sample_rate: float = 0.0
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
