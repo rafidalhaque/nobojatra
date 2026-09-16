@@ -28,6 +28,9 @@ if settings.sentry_dsn:
         dsn=settings.sentry_dsn,
         environment=settings.env,
         traces_sample_rate=settings.sentry_traces_sample_rate,
+        profiles_sample_rate=settings.sentry_profiles_sample_rate,
+        enable_logs=True,
+        enable_metrics=True,
     )
 
 @asynccontextmanager

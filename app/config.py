@@ -34,7 +34,8 @@ class Settings(BaseSettings):
     ntfy_token: str = ""
 
     sentry_dsn: str = ""
-    sentry_traces_sample_rate: float = 0.0
+    sentry_traces_sample_rate: float = 1.0
+    sentry_profiles_sample_rate: float = 1.0
 
     @property
     def cors_origin_list(self) -> list[str]:
