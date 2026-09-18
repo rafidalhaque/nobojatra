@@ -6,7 +6,7 @@ from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 
 from app.deps import AccountDep, DbDep, SuperAdminDep, require_permission
-from app.models import Account, Area, OrgUnit
+from app.models import Account, OrgUnit
 from app.schemas import ImportResult, OrgUnitIn, OrgUnitOut, OrgUnitPatch
 from app.security import hash_password
 
@@ -14,14 +14,10 @@ router = APIRouter(prefix="/org-units", tags=["org-units"])
 
 
 @router.get("", response_model=list[OrgUnitOut])
-async def list_units(
-    _: AccountDep, db: DbDep, type: str | None = None, area: str | None = None
-):
+async def list_units(_: AccountDep, db: DbDep, type: str | None = None):
     q = select(OrgUnit).order_by(OrgUnit.name)
     if type in ("branch", "dept"):
         q = q.where(OrgUnit.unit_type == type)
-    if area:
-        q = q.where(OrgUnit.area_id == area)
     return list(await db.scalars(q))
 
 
@@ -47,11 +43,7 @@ async def get_unit_profile(
 
 @router.post("", response_model=OrgUnitOut, status_code=status.HTTP_201_CREATED)
 async def create_unit(body: OrgUnitIn, _: SuperAdminDep, db: DbDep):
-    if await db.get(Area, body.area_id) is None:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Unknown area")
-    unit = OrgUnit(
-        unit_type=body.unit_type, name=body.name, code=body.code, area_id=body.area_id
-    )
+    unit = OrgUnit(unit_type=body.unit_type, name=body.name, code=body.code)
     db.add(unit)
     try:
         await db.flush()
@@ -73,10 +65,6 @@ async def update_unit(unit_id: str, body: OrgUnitPatch, _: SuperAdminDep, db: Db
     unit = await db.get(OrgUnit, unit_id)
     if unit is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
-    if body.area_id is not None:
-        if await db.get(Area, body.area_id) is None:
-            raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Unknown area")
-        unit.area_id = body.area_id
     if body.name is not None:
         unit.name = body.name
     if body.code is not None and body.code != unit.code:
@@ -115,18 +103,15 @@ async def import_units(
     _: SuperAdminDep,
     db: DbDep,
     unit_type: str = Form(...),
-    area_id: str = Form(...),
     file: UploadFile = File(...),
 ):
-    """Bulk create branches/depts under one area from an in-memory CSV.
+    """Bulk create branches/depts from an in-memory CSV.
 
     All-or-nothing: the whole file is validated first; on any error nothing is
     created. The uploaded bytes are never written to disk / storage / logs.
     """
     if unit_type not in ("branch", "dept"):
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "unit_type must be branch|dept")
-    if await db.get(Area, area_id) is None:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Unknown area")
 
     raw = await file.read()  # in-memory only; `file` (SpooledTemporaryFile) discarded on return
     try:
@@ -173,7 +158,7 @@ async def import_units(
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, {"errors": errors})
 
     for name, code, password in parsed:
-        unit = OrgUnit(unit_type=unit_type, name=name, code=code, area_id=area_id)
+        unit = OrgUnit(unit_type=unit_type, name=name, code=code)
         db.add(unit)
         await db.flush()
         db.add(

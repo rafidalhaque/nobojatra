@@ -76,7 +76,7 @@
 <form class="add" onsubmit={(e) => (e.preventDefault(), add())}>
   <input bind:value={name} placeholder={$t('admin.cats.name')} aria-label={$t('admin.cats.name')} />
   <button class="btn" disabled={adding || !name.trim()}>
-    {adding ? $t('admin.areas.adding') : $t('common.add')}
+    {adding ? $t('admin.cats.adding') : $t('common.add')}
   </button>
 </form>
 

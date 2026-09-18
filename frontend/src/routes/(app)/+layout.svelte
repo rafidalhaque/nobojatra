@@ -15,7 +15,6 @@
   // own org-unit's display info for the user card — fetched once, same data
   // the /profile page already shows (see profile/+page.svelte)
   let unit = $state(null);
-  let areaName = $state('');
 
   let collapsed = $state(false);
   let menuOpen = $state(false);
@@ -45,8 +44,6 @@
     if ($session?.org_unit_id) {
       try {
         unit = await api('/me/profile');
-        const areas = await api('/areas').catch(() => []);
-        areaName = areas.find((a) => a.id === unit.area_id)?.name ?? '';
       } catch {
         /* user card falls back to the username */
       }
@@ -122,11 +119,7 @@
     $session?.org_unit_id ? (unit?.name ?? '') : ($session?.username ?? '')
   );
   const subText = $derived(
-    $session?.org_unit_id
-      ? unit
-        ? `${unit.code}${areaName ? ' · ' + areaName : ''}`
-        : ''
-      : $t('nav.superAdmin')
+    $session?.org_unit_id ? (unit ? unit.code : '') : $t('nav.superAdmin')
   );
   const avatarInitial = $derived((displayName || '?').trim().charAt(0).toUpperCase() || '?');
 

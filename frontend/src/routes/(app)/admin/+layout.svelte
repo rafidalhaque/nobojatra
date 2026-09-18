@@ -8,7 +8,6 @@
   const tabs = [
     { href: '/admin', key: 'admin.nav.permissions' },
     { href: '/admin/categories', key: 'admin.nav.categories' },
-    { href: '/admin/areas', key: 'admin.nav.areas' },
     { href: '/admin/org-units', key: 'admin.nav.orgUnits' }
   ];
   const on = (href) => (href === '/admin' ? $page.url.pathname === '/admin' : $page.url.pathname.startsWith(href));

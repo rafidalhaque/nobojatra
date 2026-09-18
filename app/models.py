@@ -37,27 +37,16 @@ def _created_at() -> Mapped[dt.datetime]:
     return mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
 
-class Area(Base):
-    __tablename__ = "areas"
-    id: Mapped[uuid.UUID] = _uuid_pk()
-    name: Mapped[str] = mapped_column(String(200), unique=True, nullable=False)
-    created_at: Mapped[dt.datetime] = _created_at()
-
-
 class OrgUnit(Base):
     __tablename__ = "org_units"
     id: Mapped[uuid.UUID] = _uuid_pk()
     unit_type: Mapped[str] = mapped_column(UNIT_TYPE, nullable=False)
     name: Mapped[str] = mapped_column(String(300), nullable=False)
     code: Mapped[str] = mapped_column(String(120), nullable=False)
-    area_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("areas.id", ondelete="RESTRICT"), nullable=False
-    )
     created_at: Mapped[dt.datetime] = _created_at()
     updated_at: Mapped[dt.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )
-    area: Mapped[Area] = relationship(lazy="joined")
     __table_args__ = (UniqueConstraint("unit_type", "code", name="uq_org_unit_type_code"),)
 
 

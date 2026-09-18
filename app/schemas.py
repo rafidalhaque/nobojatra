@@ -33,31 +33,17 @@ class PasswordChangeIn(BaseModel):
     new_password: str = Field(min_length=8, max_length=200)
 
 
-# ---- areas ----
-class AreaIn(BaseModel):
-    name: str = Field(min_length=1, max_length=200)
-
-
-class AreaOut(BaseModel):
-    model_config = ORM
-    id: uuid.UUID
-    name: str
-    created_at: dt.datetime
-
-
 # ---- org units ----
 class OrgUnitIn(BaseModel):
     unit_type: Literal["branch", "dept"]
     name: str = Field(min_length=1, max_length=300)
     code: str = Field(min_length=1, max_length=120)
-    area_id: uuid.UUID
     password: str = Field(min_length=1)
 
 
 class OrgUnitPatch(BaseModel):
     name: str | None = Field(default=None, max_length=300)
     code: str | None = Field(default=None, max_length=120)
-    area_id: uuid.UUID | None = None
 
 
 class OrgUnitOut(BaseModel):
@@ -66,7 +52,6 @@ class OrgUnitOut(BaseModel):
     unit_type: Literal["branch", "dept"]
     name: str
     code: str
-    area_id: uuid.UUID
     created_at: dt.datetime
     updated_at: dt.datetime
 

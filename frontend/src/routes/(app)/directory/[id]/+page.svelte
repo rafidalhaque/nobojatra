@@ -13,19 +13,16 @@
   let error = $state('');
   let forbidden = $state(false);
   let unit = $state(null);
-  let areaName = $state('');
   let posts = $state([]);
   let categories = $state(new Map());
 
   onMount(async () => {
     try {
       unit = await api(`/org-units/${id}/profile`);
-      const [areas, cats, ps] = await Promise.all([
-        api('/areas').catch(() => []),
+      const [cats, ps] = await Promise.all([
         api('/categories').catch(() => []),
         api('/posts', { query: { posted_by: id, size: 50 } }).catch(() => ({ items: [] }))
       ]);
-      areaName = areas.find((a) => a.id === unit.area_id)?.name ?? '';
       categories = new Map(cats.map((c) => [c.id, c.name]));
       posts = ps.items;
     } catch (e) {
@@ -55,8 +52,6 @@
       <h1 lang={$lang}>{unit.name}</h1>
       <p class="sub">
         <span class="label">{$t('profile.code')}</span> {unit.code}
-        <span class="sep">·</span>
-        <span class="label">{$t('profile.area')}</span> {areaName || '—'}
       </p>
     </div>
     {#if canMessage}
@@ -105,9 +100,6 @@
     margin: 0;
     color: var(--ink-muted);
     font-size: var(--step--1);
-  }
-  .sep {
-    margin: 0 0.4em;
   }
   .empty {
     color: var(--ink-muted);

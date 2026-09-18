@@ -9,13 +9,10 @@
   let loading = $state(true);
   let error = $state('');
   let units = $state([]);
-  let areas = $state(new Map());
 
   onMount(async () => {
     try {
-      const [us, as_] = await Promise.all([api('/org-units'), api('/areas')]);
-      units = us;
-      areas = new Map(as_.map((a) => [a.id, a.name]));
+      units = await api('/org-units');
     } catch (e) {
       error = e.detail ?? 'error';
     } finally {
@@ -46,17 +43,16 @@
       <h2 class="label">{$t(key)}</h2>
       <table>
         <thead>
-          <tr><th>{$t('directory.code')}</th><th>Name</th><th>{$t('directory.area')}</th></tr>
+          <tr><th>{$t('directory.code')}</th><th>Name</th></tr>
         </thead>
         <tbody>
           {#each list as u (u.id)}
             <tr>
               <td class="code">{u.code}</td>
               <td><a href={`/directory/${u.id}`}>{u.name}</a></td>
-              <td>{areas.get(u.area_id) ?? '—'}</td>
             </tr>
           {:else}
-            <tr><td colspan="3" class="muted">{$t('common.none')}</td></tr>
+            <tr><td colspan="2" class="muted">{$t('common.none')}</td></tr>
           {/each}
         </tbody>
       </table>

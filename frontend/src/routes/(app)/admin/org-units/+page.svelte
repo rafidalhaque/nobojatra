@@ -7,21 +7,18 @@
 
   let loading = $state(true);
   let error = $state('');
-  let areas = $state([]);
   let units = $state([]);
 
   // single create
   let cType = $state('dept');
   let cName = $state('');
   let cCode = $state('');
-  let cArea = $state('');
   let cPassword = $state('');
   let creating = $state(false);
   let createErr = $state('');
 
   // csv import
   let iType = $state('dept');
-  let iArea = $state('');
   let iFile = $state(null);
   let iDragOver = $state(false);
   let importing = $state(false);
@@ -33,7 +30,6 @@
   let editId = $state(null);
   let eName = $state('');
   let eCode = $state('');
-  let eArea = $state('');
   let savingEdit = $state(false);
   let editErr = $state('');
 
@@ -42,9 +38,7 @@
   async function load() {
     loading = true;
     try {
-      [areas, units] = await Promise.all([api('/areas'), api('/org-units')]);
-      if (areas.length && !cArea) cArea = areas[0].id;
-      if (areas.length && !iArea) iArea = areas[0].id;
+      units = await api('/org-units');
       error = '';
     } catch (e) {
       error = e.detail ?? 'error';
@@ -61,7 +55,6 @@
     editId = u.id;
     eName = u.name;
     eCode = u.code;
-    eArea = u.area_id;
     editErr = '';
   }
 
@@ -82,7 +75,6 @@
     const patch = {};
     if (eName.trim() !== cur.name) patch.name = eName.trim();
     if (eCode.trim() !== cur.code) patch.code = eCode.trim();
-    if (eArea !== cur.area_id) patch.area_id = eArea;
     if (!Object.keys(patch).length) {
       editId = null;
       return;
@@ -107,7 +99,7 @@
     try {
       const u = await api('/org-units', {
         method: 'POST',
-        body: { unit_type: cType, name: cName.trim(), code: cCode.trim(), area_id: cArea, password: cPassword }
+        body: { unit_type: cType, name: cName.trim(), code: cCode.trim(), password: cPassword }
       });
       units = sortUnits([...units, u]);
       cName = cCode = cPassword = '';
@@ -127,7 +119,6 @@
     try {
       const fd = new FormData();
       fd.append('unit_type', iType);
-      fd.append('area_id', iArea);
       fd.append('file', iFile);
       const res = await api('/org-units/import', { method: 'POST', body: fd });
       importOk = $t('admin.units.import.ok', { n: res.created });
@@ -141,7 +132,6 @@
     }
   }
 
-  const areaName = $derived((id) => areas.find((a) => a.id === id)?.name ?? '—');
 </script>
 
 <svelte:head><title>{$t('admin.nav.orgUnits')} · Nobojatra</title></svelte:head>
@@ -150,8 +140,6 @@
   <Spinner block />
 {:else if error}
   <p class="err" role="alert">{$t('common.error', { detail: error })}</p>
-{:else if areas.length === 0}
-  <p class="muted">{$t('admin.units.needArea')} <a href="/admin/areas">{$t('admin.nav.areas')}</a></p>
 {:else}
   <details class="disc">
     <summary class="label">{$t('admin.units.createOne')}</summary>
@@ -160,11 +148,6 @@
         <select bind:value={cType}>
           <option value="dept">{$t('admin.units.dept')}</option>
           <option value="branch">{$t('admin.units.branch')}</option>
-        </select>
-      </label>
-      <label>{$t('admin.units.area')}
-        <select bind:value={cArea}>
-          {#each areas as a (a.id)}<option value={a.id}>{a.name}</option>{/each}
         </select>
       </label>
       <label>{$t('admin.units.name')}<input bind:value={cName} required /></label>
@@ -187,11 +170,6 @@
         <select bind:value={iType}>
           <option value="dept">{$t('admin.units.dept')}</option>
           <option value="branch">{$t('admin.units.branch')}</option>
-        </select>
-      </label>
-      <label>{$t('admin.units.area')}
-        <select bind:value={iArea}>
-          {#each areas as a (a.id)}<option value={a.id}>{a.name}</option>{/each}
         </select>
       </label>
       <label class="wide">{$t('admin.units.file')}
@@ -238,7 +216,7 @@
       <p class="muted">{$t('common.none')}</p>
     {:else}
       <table>
-        <thead><tr><th>{$t('admin.units.type')}</th><th>{$t('admin.units.code')}</th><th>{$t('admin.units.name')}</th><th>{$t('admin.units.area')}</th><th>{$t('admin.units.actions')}</th></tr></thead>
+        <thead><tr><th>{$t('admin.units.type')}</th><th>{$t('admin.units.code')}</th><th>{$t('admin.units.name')}</th><th>{$t('admin.units.actions')}</th></tr></thead>
         <tbody>
           {#each units as u (u.id)}
             {#if editId === u.id}
@@ -246,11 +224,6 @@
                 <td>{u.unit_type === 'dept' ? $t('admin.units.dept') : $t('admin.units.branch')}</td>
                 <td><input class="ei" bind:value={eCode} aria-label={$t('admin.units.code')} /></td>
                 <td><input class="ei" bind:value={eName} aria-label={$t('admin.units.name')} /></td>
-                <td>
-                  <select class="ei" bind:value={eArea} aria-label={$t('admin.units.area')}>
-                    {#each areas as a (a.id)}<option value={a.id}>{a.name}</option>{/each}
-                  </select>
-                </td>
                 <td class="acts">
                   <button class="lnk" onclick={saveEdit} disabled={savingEdit}>
                     {savingEdit ? $t('admin.units.creating') : $t('common.save')}
@@ -258,13 +231,12 @@
                   <button class="lnk" onclick={() => (editId = null)} disabled={savingEdit}>{$t('common.cancel')}</button>
                 </td>
               </tr>
-              {#if editErr}<tr><td colspan="5" class="err">{editErr}</td></tr>{/if}
+              {#if editErr}<tr><td colspan="4" class="err">{editErr}</td></tr>{/if}
             {:else}
               <tr>
                 <td>{u.unit_type === 'dept' ? $t('admin.units.dept') : $t('admin.units.branch')}</td>
                 <td class="code">{u.code}</td>
                 <td>{u.name}</td>
-                <td>{areaName(u.area_id)}</td>
                 <td class="acts">
                   <button class="lnk" onclick={() => startEdit(u)}>{$t('common.edit')}</button>
                   <button class="lnk danger" onclick={() => removeUnit(u)}>{$t('common.delete')}</button>

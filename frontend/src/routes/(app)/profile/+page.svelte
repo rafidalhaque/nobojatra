@@ -6,7 +6,6 @@
 
   let loading = $state(true);
   let unit = $state(null);
-  let areaName = $state('');
 
   let currentPassword = $state('');
   let newPassword = $state('');
@@ -19,8 +18,6 @@
     if ($session?.org_unit_id) {
       try {
         unit = await api('/me/profile');
-        const areas = await api('/areas').catch(() => []);
-        areaName = areas.find((a) => a.id === unit.area_id)?.name ?? '';
       } catch {
         /* nothing to show */
       }
@@ -69,8 +66,6 @@
     <h2 lang={$lang}>{unit.name}</h2>
     <p class="sub">
       <span class="label">{$t('profile.code')}</span> {unit.code}
-      <span class="sep">·</span>
-      <span class="label">{$t('profile.area')}</span> {areaName || '—'}
     </p>
   </section>
 {/if}
@@ -119,9 +114,6 @@
     margin: 0;
     color: var(--ink-muted);
     font-size: var(--step--1);
-  }
-  .sep {
-    margin: 0 0.4em;
   }
   form {
     margin-top: 0.75rem;

@@ -10,7 +10,6 @@ from app import storage
 from app.config import get_settings
 from app.routers import (
     admin_permissions,
-    areas,
     auth,
     categories,
     comments,
@@ -64,7 +63,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for r in (auth, areas, org_units, categories, posts, comments, messages, notifications, admin_permissions):
+for r in (auth, org_units, categories, posts, comments, messages, notifications, admin_permissions):
     app.include_router(r.router)
 
 

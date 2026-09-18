@@ -4,7 +4,7 @@ Actions are data, not hardcoded role checks. Effective value for a non-super acc
     org_unit override  ->  role default profile  ->  False
 Super Admin bypasses this entirely (see spec 7 / 11.7).
 
-profile.edit and area.manage are intentionally NOT in this catalog: they are
+profile.edit is intentionally NOT in this catalog: it is
 Super-Admin-only with no toggle (spec 7, 15).
 """
 
