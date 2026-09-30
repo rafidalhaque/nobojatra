@@ -1,9 +1,11 @@
 name: nobojatra
 
-# Postgres is NOT run here — point DATABASE_URL / DATABASE_URL_OWNER in .env at the
-# host database. From these containers the host is `host.docker.internal` (mapped
-# below), e.g. postgresql+asyncpg://nobojatra_app:pw@host.docker.internal:5432/nobojatra
-# Provision the two roles + database first: see docker/postgres-init.sh.
+# Postgres is NOT run here — use a Dokploy-managed Postgres and set DATABASE_URL /
+# DATABASE_URL_OWNER in the Dokploy Environment tab to its internal hostname, e.g.
+# postgresql+asyncpg://nobojatra_app:pw@<pg-app-name>:5432/nobojatra
+# The Dokploy DB user is the schema owner; add the runtime role once with
+# docker/postgres-init.sh. Attach this stack to the DB's network if it is not shared.
+# Deploy via Dokploy: add a Domain on `web` (port 80); no host ports are published.
 
 services:
   ntfy:
@@ -21,23 +23,16 @@ services:
   migrate:
     build:
       context: .
-      network: host
     command: uv run alembic upgrade head
     env_file: .env
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     restart: "no"
 
   api:
     build:
       context: .
-      network: host
     env_file: .env
     environment:
       NTFY_URL: http://ntfy:80
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    ports: ["9341:8000"]
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -45,15 +40,12 @@ services:
   web:
     build:
       context: ./frontend
-      network: host
       args:
         VITE_API_BASE: /api
-    ports: ["9342:80"]
     depends_on:
       api:
         condition: service_started
-    # TLS: terminate at a load balancer / a second nginx in front, or add a certs
-    # volume + listen 443 here. App assumes it is served over https in prod.
+    # TLS: terminated by Traefik (Dokploy). App assumes https in prod.
 
 volumes:
   ntfydata:

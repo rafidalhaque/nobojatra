@@ -1,5 +1,8 @@
 #!/bin/bash
-# Provision the two-tier database on a host Postgres (compose no longer runs PG).
+# Provision the two-tier database (compose no longer runs PG).
+# Dokploy-managed Postgres: it already created the DB + user (= schema owner, use it as
+# POSTGRES_USER/POSTGRES_DB and in DATABASE_URL_OWNER). Skip the bootstrap below and just
+# run this script once from the DB's Dokploy terminal / a psql session (PGHOST=<pg-app-name>).
 #
 # One-time bootstrap as a Postgres superuser (creates the DB + schema-owner role):
 #
