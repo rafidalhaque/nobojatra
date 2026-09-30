@@ -24,6 +24,7 @@ services:
     build:
       context: .
     command: uv run alembic upgrade head
+    networks: [default, dokploy-network]
     env_file: .env
     restart: "no"
 
@@ -33,6 +34,7 @@ services:
     env_file: .env
     environment:
       NTFY_URL: http://ntfy:80
+    networks: [default, dokploy-network]
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -42,10 +44,17 @@ services:
       context: ./frontend
       args:
         VITE_API_BASE: /api
+    networks: [default, dokploy-network]
     depends_on:
       api:
         condition: service_started
     # TLS: terminated by Traefik (Dokploy). App assumes https in prod.
+
+networks:
+  # Dokploy's shared network: reaches the managed Postgres and lets Traefik route to `web`.
+  # For local `docker compose up`, run `docker network create dokploy-network` once.
+  dokploy-network:
+    external: true
 
 volumes:
   ntfydata:
