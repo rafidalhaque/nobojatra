@@ -1,13 +1,27 @@
 name: nobojatra
 
-# Postgres is NOT run here — use a Dokploy-managed Postgres and set DATABASE_URL /
-# DATABASE_URL_OWNER in the Dokploy Environment tab to its internal hostname, e.g.
-# postgresql+asyncpg://nobojatra_app:pw@<pg-app-name>:5432/nobojatra
-# The Dokploy DB user is the schema owner; add the runtime role once with
-# docker/postgres-init.sh. Attach this stack to the DB's network if it is not shared.
+# Postgres runs in this stack (service `postgres`, data in the pgdata volume). On first
+# start docker/postgres-init.sh creates the RLS runtime role; set in .env / Dokploy env:
+#   POSTGRES_USER=nobojatra_owner  POSTGRES_DB=nobojatra  POSTGRES_PASSWORD=...
+#   APP_DB_USER=nobojatra_app      APP_DB_PASSWORD=...
+#   DATABASE_URL(_OWNER)=postgresql+asyncpg://<user>:<pw>@postgres:5432/nobojatra
+# Init scripts only run on an empty volume — changing roles later needs a manual ALTER.
 # Deploy via Dokploy: add a Domain on `web` (port 80); no host ports are published.
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    env_file: .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres-init.sh:/docker-entrypoint-initdb.d/10-app-role.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
   ntfy:
     image: binwiederhier/ntfy
     command: serve
@@ -24,9 +38,11 @@ services:
     build:
       context: .
     command: uv run alembic upgrade head
-    networks: [default, dokploy-network]
     env_file: .env
     restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   api:
     build:
@@ -34,7 +50,6 @@ services:
     env_file: .env
     environment:
       NTFY_URL: http://ntfy:80
-    networks: [default, dokploy-network]
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -51,10 +66,11 @@ services:
     # TLS: terminated by Traefik (Dokploy). App assumes https in prod.
 
 networks:
-  # Dokploy's shared network: reaches the managed Postgres and lets Traefik route to `web`.
+  # Dokploy's shared network, so Traefik can route to `web`.
   # For local `docker compose up`, run `docker network create dokploy-network` once.
   dokploy-network:
     external: true
 
 volumes:
+  pgdata:
   ntfydata:
