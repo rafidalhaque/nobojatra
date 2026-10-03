@@ -170,10 +170,23 @@
     <section class="pane">
       {#if !openWith}
         <p class="muted center">{$t('messages.empty')}</p>
+      {:else}
+        {@const peer = units.get(openWith)}
+        <header class="phead">
+          <span class="avatar">{unitLabel(peer).slice(0, 2).toUpperCase()}</span>
+          <div>
+            <strong>{unitLabel(peer)}</strong>
+            <small>{peer?.unit_type ?? ''}</small>
+          </div>
+        </header>
+      {/if}
+      {#if !openWith}
+        <!-- header branch above covers the empty state -->
       {:else if threadLoading}
         <Spinner block />
       {:else}
         <ol class="bubbles" lang={$lang}>
+          {#if !thread.length}<li class="hint">{$t('messages.write')}</li>{/if}
           {#each thread as m (m.id)}
             <li class:mine={m.sender_org_unit_id === actingUnit}>
               {#if m.body}<p>{m.body}</p>{/if}
@@ -215,8 +228,8 @@
             </ul>
           {/if}
           <div class="composerow">
-            <label class="clip" title={$t('messages.attach')}>
-              {$t('messages.attach')}
+            <label class="clip" title={$t('messages.attach')} aria-label={$t('messages.attach')}>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 12-9 9a6 6 0 0 1-8.5-8.5l9-9a4 4 0 0 1 5.7 5.7l-9 9a2 2 0 0 1-2.8-2.8l8.5-8.5" /></svg>
               <input
                 type="file"
                 multiple
@@ -226,9 +239,15 @@
                 }}
               />
             </label>
-            <textarea rows="2" bind:value={draft} placeholder={$t('messages.write')} lang={$lang}></textarea>
-            <button class="btn" disabled={sending || (!draft.trim() && !files.length)}>
-              {sending ? $t('messages.sending') : $t('messages.send')}
+            <textarea
+              rows="1"
+              bind:value={draft}
+              placeholder={$t('messages.write')}
+              lang={$lang}
+              onkeydown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), send())}
+            ></textarea>
+            <button class="sendbtn" aria-label={$t('messages.send')} disabled={sending || (!draft.trim() && !files.length)}>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4z" /><path d="M22 2 11 13" /></svg>
             </button>
           </div>
         </form>
@@ -330,7 +349,8 @@
   .pane {
     border: 1px solid var(--rule);
     border-radius: var(--radius);
-    min-height: 24rem;
+    min-height: 32rem;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     background: var(--paper-raised);
@@ -412,10 +432,76 @@
     flex: 1;
     resize: none;
     font-family: var(--font-latin);
-    padding: 0.5em;
+    height: 2.6rem;
+    padding: 0.6em 0.8em;
     border: 1px solid var(--rule);
     border-radius: var(--radius);
     background: var(--paper);
+    color: var(--ink);
+  }
+  .compose textarea:focus {
+    outline: none;
+    border-color: var(--thread);
+  }
+  .clip,
+  .sendbtn {
+    width: 2.6rem;
+    height: 2.6rem;
+    padding: 0;
+    justify-content: center;
+    flex: none;
+  }
+  .sendbtn {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--paper);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .sendbtn:hover:not(:disabled) {
+    border-color: var(--thread);
+    color: var(--thread);
+  }
+  .sendbtn:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+  .composerow {
+    align-items: center;
+  }
+  .phead {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1.1rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .phead div {
+    display: grid;
+  }
+  .phead small {
+    color: var(--ink-muted);
+    font-size: var(--step--1);
+  }
+  .avatar {
+    display: grid;
+    place-items: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 50%;
+    border: 1px solid var(--thread);
+    background: color-mix(in srgb, var(--thread) 15%, transparent);
+    color: var(--thread);
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+  .bubbles li.hint {
+    justify-self: center;
+    border: 0;
+    background: none;
+    color: var(--ink-muted);
   }
   .pending {
     list-style: none;
